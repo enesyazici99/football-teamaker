@@ -39,13 +39,6 @@ export default function AuthorizedMemberModal({
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchTeamData();
-      fetchPlayers();
-    }
-  }, [isOpen, fetchTeamData, fetchPlayers]);
-
   const fetchTeamData = useCallback(async () => {
     try {
       const response = await fetch(`/api/teams/${teamId}`);
@@ -74,6 +67,13 @@ export default function AuthorizedMemberModal({
       console.error('Oyuncular yüklenemedi:', error);
     }
   }, [teamId, team?.created_by]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchTeamData();
+      fetchPlayers();
+    }
+  }, [isOpen, fetchTeamData, fetchPlayers]);
 
   const handleAddAuthorized = async () => {
     if (!selectedPlayer) {

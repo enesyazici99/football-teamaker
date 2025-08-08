@@ -237,12 +237,6 @@ export default function TeamFormationPage() {
   const params = useParams();
   const teamId = params.id as string;
 
-  useEffect(() => {
-    if (teamId) {
-      fetchTeamData();
-    }
-  }, [teamId, fetchTeamData]);
-
   const fetchTeamData = useCallback(async () => {
     try {
       const [teamResponse, playersResponse, formationResponse, userResponse] = await Promise.all([
@@ -317,6 +311,12 @@ export default function TeamFormationPage() {
       setIsLoading(false);
     }
   }, [teamId, selectedFormation, availableFormations, team]);
+
+  useEffect(() => {
+    if (teamId) {
+      fetchTeamData();
+    }
+  }, [teamId, fetchTeamData]);
 
   const handlePositionClick = (position: Position) => {
     // Yetki kontrolü

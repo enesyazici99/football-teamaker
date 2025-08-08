@@ -49,12 +49,6 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchData();
-    }
-  }, [isOpen, fetchData]);
-
   const fetchData = useCallback(async () => {
     try {
       const [usersResponse, playersResponse, invitationsResponse] = await Promise.all([
@@ -81,6 +75,12 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
       console.error('Veriler yüklenemedi:', error);
     }
   }, [teamId]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchData();
+    }
+  }, [isOpen, fetchData]);
 
   // Filtrelenmiş kullanıcılar - zaten takımda olan veya davet edilmiş olanları çıkar
   const filteredUsers = users.filter(user => {

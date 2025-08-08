@@ -71,10 +71,6 @@ export default function TeamStatsPage() {
   const [error, setError] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('week');
 
-  useEffect(() => {
-    fetchData();
-  }, [teamId, fetchData]);
-
   const fetchData = useCallback(async () => {
     try {
       const [teamResponse, playersResponse, matchesResponse, ratingsResponse, userResponse] = await Promise.all([
@@ -115,6 +111,10 @@ export default function TeamStatsPage() {
       setIsLoading(false);
     }
   }, [teamId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [teamId, fetchData]);
 
   const getPlayerAverageRating = (playerId: number, period: 'week' | 'month' | 'year') => {
     const now = new Date();

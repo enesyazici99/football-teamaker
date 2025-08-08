@@ -39,12 +39,6 @@ export default function CreateMatchPage() {
   const params = useParams();
   const teamId = params.id as string;
 
-  useEffect(() => {
-    if (teamId) {
-      fetchTeamData();
-    }
-  }, [teamId, fetchTeamData]);
-
   const fetchTeamData = useCallback(async () => {
     try {
       const [teamResponse, userResponse] = await Promise.all([
@@ -67,6 +61,12 @@ export default function CreateMatchPage() {
       setIsLoading(false);
     }
   }, [teamId]);
+
+  useEffect(() => {
+    if (teamId) {
+      fetchTeamData();
+    }
+  }, [teamId, fetchTeamData]);
 
   // Takım sahibi veya yetkili üye kontrolü
   const isTeamOwner = team?.created_by === currentUser?.id;

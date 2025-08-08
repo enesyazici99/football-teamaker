@@ -32,12 +32,6 @@ export default function SetCaptainModal({ isOpen, onClose, teamId, teamName, cur
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchPlayers();
-    }
-  }, [isOpen, fetchPlayers]);
-
   const fetchPlayers = useCallback(async () => {
     try {
       const response = await fetch(`/api/teams/${teamId}/players`);
@@ -49,6 +43,12 @@ export default function SetCaptainModal({ isOpen, onClose, teamId, teamName, cur
       console.error('Oyuncular yüklenemedi:', error);
     }
   }, [teamId]);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchPlayers();
+    }
+  }, [isOpen, fetchPlayers]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
