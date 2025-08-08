@@ -111,7 +111,7 @@ export default function PlayersPage() {
                 onClick={() => router.push('/dashboard')}
                 className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
               >
-                Dashboard'a Dön
+                Dashboard&apos;a Dön
               </Button>
             </CardContent>
           </Card>

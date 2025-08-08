@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 import { matchDB } from '@/lib/db';
 import { z } from 'zod';
-import { initializeDatabase } from '@/lib/db';
 
 const updateMatchSchema = z.object({
   match_date: z.string().optional(),

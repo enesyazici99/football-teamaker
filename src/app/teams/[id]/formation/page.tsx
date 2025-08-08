@@ -227,7 +227,6 @@ export default function TeamFormationPage() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
-  const [formation, setFormation] = useState<Formation | null>(null);
   const [selectedFormation, setSelectedFormation] = useState<string>('');
   const [availableFormations, setAvailableFormations] = useState<FormationOption[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -281,13 +280,13 @@ export default function TeamFormationPage() {
         const formationData = await formationResponse.json();
         console.log('Formasyon verisi:', formationData); // Debug için
         
-        setFormation(formationData.formation);
+        // setFormation(formationData.formation); // Bu satır kaldırıldı
         setSelectedFormation(formationData.formation.name);
         
         // Pozisyonları ayarla
         const calculatedPositions = calculatePositions(formationData.formation.name);
         const positionsWithPlayers = calculatedPositions.map(pos => {
-          const savedPosition = formationData.positions.find((sp: any) => sp.id === pos.id);
+          const savedPosition = formationData.positions.find((sp: { id: string, player?: Player }) => sp.id === pos.id);
           return {
             ...pos,
             player: savedPosition?.player || null
@@ -322,7 +321,7 @@ export default function TeamFormationPage() {
   const handlePositionClick = (position: Position) => {
     // Yetki kontrolü
     if (!isAuthorized) {
-      (window as any).showToast({
+      (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Yetki Hatası!',
         message: 'Pozisyon değiştirmek için yetkiniz bulunmuyor',
@@ -348,7 +347,7 @@ export default function TeamFormationPage() {
   const handlePlayerSelect = (player: Player) => {
     // Yetki kontrolü
     if (!isAuthorized) {
-      (window as any).showToast({
+      (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Yetki Hatası!',
         message: 'Oyuncu seçmek için yetkiniz bulunmuyor',
@@ -363,7 +362,7 @@ export default function TeamFormationPage() {
   const handleFormationChange = async (formationName: string) => {
     // Yetki kontrolü
     if (!isAuthorized) {
-      (window as any).showToast({
+      (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Yetki Hatası!',
         message: 'Formasyon değiştirmek için yetkiniz bulunmuyor',
@@ -385,7 +384,7 @@ export default function TeamFormationPage() {
   const handleSaveFormation = async () => {
     // Yetki kontrolü
     if (!isAuthorized) {
-      (window as any).showToast({
+      (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Yetki Hatası!',
         message: 'Bu işlem için yetkiniz bulunmuyor',
@@ -415,8 +414,7 @@ export default function TeamFormationPage() {
       });
 
       if (response.ok) {
-        const result = await response.json();
-        (window as any).showToast({
+        (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
           type: 'success',
           title: 'Başarılı!',
           message: 'Formasyon ve mevkilendirme başarıyla kaydedildi',
@@ -429,11 +427,12 @@ export default function TeamFormationPage() {
         throw new Error(errorData.error || 'Formasyon kaydedilemedi');
       }
     } catch (error) {
-      setError('Formasyon kaydedilemedi');
-      (window as any).showToast({
+      const errorMessage = error instanceof Error ? error.message : 'Formasyon kaydedilemedi';
+      setError(errorMessage);
+      (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Hata!',
-        message: `Formasyon kaydedilemedi: ${error}`,
+        message: `Formasyon kaydedilemedi: ${errorMessage}`,
         duration: 4000
       });
     } finally {
@@ -461,7 +460,7 @@ export default function TeamFormationPage() {
             onClick={() => router.push('/dashboard')}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            Dashboard'a Dön
+            Dashboard&apos;a Dön
           </button>
         </div>
       </div>
@@ -483,7 +482,7 @@ export default function TeamFormationPage() {
             onClick={() => router.push('/dashboard')}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            Dashboard'a Dön
+            Dashboard&apos;a Dön
           </button>
         </div>
       </div>

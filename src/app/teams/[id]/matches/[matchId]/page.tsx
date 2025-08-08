@@ -68,7 +68,6 @@ export default function MatchDetailPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<Player | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [selectedPlayerForRating, setSelectedPlayerForRating] = useState<Player | null>(null);
   const [isUpdatingScore, setIsUpdatingScore] = useState(false);
@@ -121,7 +120,7 @@ export default function MatchDetailPage() {
         setCurrentUser(userData.user);
       }
     } catch (error) {
-      setError('Maç bilgileri yüklenemedi');
+      console.error('Maç bilgileri yüklenemedi:', error);
     } finally {
       setIsLoading(false);
     }
@@ -157,7 +156,6 @@ export default function MatchDetailPage() {
   // Takım sahibi veya yetkili üye kontrolü
   const isTeamOwner = team?.created_by === currentUser?.id;
   const isAuthorized = isTeamOwner || team?.captain_id === currentUser?.id;
-  const isTeamMember = players.some(player => player.user_id === currentUser?.id);
 
   const getStatusText = (status: string) => {
     switch (status) {
@@ -211,11 +209,6 @@ export default function MatchDetailPage() {
     return Math.round((totalRating / playerRatings.length) * 10) / 10;
   };
 
-  // Belirli bir oyuncunun puanladığı oyuncuları getir
-  const getRatedPlayers = (raterPlayerId: number) => {
-    return ratings.filter(r => r.rater_player_id === raterPlayerId);
-  };
-
   // Belirli bir oyuncunun puanlanıp puanlanmadığını kontrol et
   const isPlayerRated = (raterPlayerId: number, ratedPlayerId: number) => {
     return ratings.some(r => r.rater_player_id === raterPlayerId && r.rated_player_id === ratedPlayerId);
@@ -254,7 +247,7 @@ export default function MatchDetailPage() {
           setRatings(ratingsData.ratings || []);
         }
 
-        (window as any).showToast({
+        (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
           type: 'success',
           title: 'Başarılı!',
           message: 'Oyuncu puanı başarıyla kaydedildi',
@@ -264,7 +257,7 @@ export default function MatchDetailPage() {
         throw new Error('Puanlama kaydedilemedi');
       }
     } catch (error) {
-      (window as any).showToast({
+      (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Hata!',
         message: 'Puanlama kaydedilemedi',
@@ -296,7 +289,7 @@ export default function MatchDetailPage() {
         const updatedMatch = await response.json();
         setMatch(updatedMatch.match);
         
-        (window as any).showToast({
+        (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
           type: 'success',
           title: 'Başarılı!',
           message: 'Maç skoru güncellendi',
@@ -306,7 +299,7 @@ export default function MatchDetailPage() {
         throw new Error('Skor güncellenemedi');
       }
     } catch (error) {
-      (window as any).showToast({
+      (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Hata!',
         message: 'Skor güncellenemedi',
@@ -325,7 +318,7 @@ export default function MatchDetailPage() {
       });
 
       if (response.ok) {
-        (window as any).showToast({
+        (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
           type: 'success',
           title: 'Başarılı!',
           message: 'Maç başarıyla silindi',
@@ -336,7 +329,7 @@ export default function MatchDetailPage() {
         throw new Error('Maç silinemedi');
       }
     } catch (error) {
-      (window as any).showToast({
+      (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Hata!',
         message: 'Maç silinemedi',
@@ -427,14 +420,6 @@ export default function MatchDetailPage() {
               </div>
             </div>
           </div>
-
-          {error && (
-            <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-              <Badge variant="destructive" className="w-full justify-center">
-                {error}
-              </Badge>
-            </div>
-          )}
 
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Maç Bilgileri */}

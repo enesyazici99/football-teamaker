@@ -110,13 +110,13 @@ export async function POST(
     if (positions && positions.length > 0) {
       console.log('Gelen pozisyonlar:', positions); // Debug için
       
-      const positionsToSave = positions.map((pos: any) => ({
+      const positionsToSave = positions.map((pos: { player?: { id: number }, id: number, name: string, x: number, y: number }) => ({
         player_id: pos.player?.id,
         position_id: pos.id,
         position_name: pos.name,
         x_coordinate: pos.x,
         y_coordinate: pos.y
-      })).filter((pos: any) => pos.player_id); // Sadece oyuncu atanmış pozisyonları kaydet
+      })).filter((pos: { player_id?: number }) => pos.player_id); // Sadece oyuncu atanmış pozisyonları kaydet
 
       console.log('Kaydedilecek pozisyonlar:', positionsToSave); // Debug için
 

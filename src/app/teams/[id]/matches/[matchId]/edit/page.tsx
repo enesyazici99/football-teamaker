@@ -150,7 +150,7 @@ export default function EditMatchPage() {
       });
 
       if (response.ok) {
-        (window as any).showToast({
+        (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
           type: 'success',
           title: 'Başarılı',
           message: 'Maç başarıyla güncellendi',
@@ -158,13 +158,18 @@ export default function EditMatchPage() {
         });
         router.push(`/teams/${teamId}/matches`);
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Maç güncellenemedi');
+        const data = await response.json();
+        (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
+          type: 'error',
+          title: 'Hata',
+          message: data.error || 'Maç güncellenemedi',
+          duration: 4000
+        });
       }
     } catch (error) {
       console.error('Maç güncelleme hatası:', error);
       setError(error instanceof Error ? error.message : 'Maç güncellenemedi');
-      (window as any).showToast({
+      (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Hata',
         message: error instanceof Error ? error.message : 'Maç güncellenemedi',

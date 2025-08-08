@@ -70,7 +70,6 @@ interface TeamInvitation {
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
   const [teams, setTeams] = useState<Team[]>([]);
-  const [players, setPlayers] = useState<Player[]>([]);
   const [invitations, setInvitations] = useState<TeamInvitation[]>([]);
   const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -172,7 +171,7 @@ export default function DashboardPage() {
       });
 
       if (response.ok) {
-        (window as any).showToast({
+        (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
           type: 'success',
           title: 'Başarılı',
           message: 'Takımdan başarıyla ayrıldınız',
@@ -182,7 +181,7 @@ export default function DashboardPage() {
         await fetchTeams();
       } else {
         const data = await response.json();
-        (window as any).showToast({
+        (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
           type: 'error',
           title: 'Hata',
           message: data.error || 'Takımdan ayrılma işlemi başarısız',
@@ -190,7 +189,7 @@ export default function DashboardPage() {
         });
       }
     } catch (error) {
-      (window as any).showToast({
+      (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Hata',
         message: 'Takımdan ayrılma işlemi başarısız',
@@ -217,7 +216,7 @@ export default function DashboardPage() {
       });
 
       if (response.ok) {
-        (window as any).showToast({
+        (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
           type: 'success',
           title: 'Başarılı',
           message: action === 'accept' ? 'Davet kabul edildi' : 'Davet reddedildi',
@@ -227,7 +226,7 @@ export default function DashboardPage() {
         await Promise.all([fetchInvitations(), fetchTeams()]);
       } else {
         const data = await response.json();
-        (window as any).showToast({
+        (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
           type: 'error',
           title: 'Hata',
           message: data.error || 'İşlem başarısız',
@@ -235,7 +234,7 @@ export default function DashboardPage() {
         });
       }
     } catch (error) {
-      (window as any).showToast({
+      (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Hata',
         message: 'İşlem başarısız',
