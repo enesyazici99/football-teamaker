@@ -35,7 +35,7 @@ export default function CreateTeamPage() {
       } else {
         setError(data.error || 'Takım oluşturulamadı');
       }
-    } catch (error) {
+    } catch {
       setError('Takım oluşturulamadı');
     } finally {
       setIsLoading(false);

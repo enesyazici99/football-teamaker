@@ -109,7 +109,7 @@ export default function TeamStatsPage() {
         const userData = await userResponse.json();
         setCurrentUser(userData.user);
       }
-    } catch (error) {
+    } catch {
       setError('Veriler yüklenemedi');
     } finally {
       setIsLoading(false);

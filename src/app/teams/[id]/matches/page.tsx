@@ -215,8 +215,8 @@ export default function TeamMatchesPage() {
       } else {
         throw new Error('Maç silinemedi');
       }
-    } catch (error) {
-      (window as any).showToast({
+    } catch {
+      (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
         type: 'error',
         title: 'Hata!',
         message: 'Maç silinemedi',

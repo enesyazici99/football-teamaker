@@ -61,7 +61,7 @@ export default function CreateMatchPage() {
         const userData = await userResponse.json();
         setCurrentUser(userData.user);
       }
-    } catch (error) {
+    } catch {
       setError('Takım bilgileri yüklenemedi');
     } finally {
       setIsLoading(false);
@@ -110,7 +110,7 @@ export default function CreateMatchPage() {
         const data = await response.json();
         setError(data.error || 'Maç oluşturulamadı');
       }
-    } catch (error) {
+    } catch {
       setError('Maç oluşturulamadı');
     } finally {
       setIsSubmitting(false);

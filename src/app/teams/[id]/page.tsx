@@ -99,7 +99,7 @@ export default function TeamPage() {
         const userData = await userResponse.json();
         setCurrentUser(userData.user);
       }
-    } catch (error) {
+    } catch {
       setError('Takım bilgileri yüklenemedi');
     } finally {
       setIsLoading(false);
@@ -139,7 +139,7 @@ export default function TeamPage() {
       }
     } catch (error) {
       setError('Takım boyutu güncellenemedi');
-      (window as any).showToast({
+      (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
         type: 'error',
         title: 'Hata!',
         message: 'Takım boyutu güncellenemedi',
