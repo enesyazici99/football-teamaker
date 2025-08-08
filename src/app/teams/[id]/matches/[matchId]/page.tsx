@@ -76,12 +76,6 @@ export default function MatchDetailPage() {
   const teamId = params.id as string;
   const matchId = params.matchId as string;
 
-  useEffect(() => {
-    if (teamId && matchId) {
-      fetchMatchData();
-    }
-  }, [teamId, matchId, fetchMatchData]);
-
   const fetchMatchData = useCallback(async () => {
     try {
       const [matchResponse, teamResponse, playersResponse, ratingsResponse, userResponse] = await Promise.all([
@@ -125,6 +119,12 @@ export default function MatchDetailPage() {
       setIsLoading(false);
     }
   }, [teamId, matchId]);
+
+  useEffect(() => {
+    if (teamId && matchId) {
+      fetchMatchData();
+    }
+  }, [teamId, matchId, fetchMatchData]);
 
   const isMatchCompleted = () => {
     if (!match) return false;
