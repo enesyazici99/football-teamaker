@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/navbar';
+import TeamNavigation from '@/components/TeamNavigation';
 
 interface Player {
   id: number;
@@ -259,6 +260,9 @@ export default function TeamStatsPage() {
               </Badge>
             </div>
           )}
+
+          {/* Navigation */}
+          <TeamNavigation teamId={teamId} isAuthorized={false} />
 
           {/* Chart 1: Oyuncu Performans Grafiği */}
           <Card className="card-dark mb-6">

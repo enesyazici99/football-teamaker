@@ -214,16 +214,16 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-card rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto border">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-xl font-bold text-foreground">
               Oyuncu Davet Et - {teamName}
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-muted-foreground hover:text-foreground transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -232,27 +232,27 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
           </div>
 
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-600">{error}</p>
+            <div className="mb-4 p-4 bg-destructive/10 border border-destructive/50 rounded-lg">
+              <p className="text-destructive">{error}</p>
             </div>
           )}
 
           {success && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-green-600">{success}</p>
+            <div className="mb-4 p-4 bg-green-500/10 border border-green-500/50 rounded-lg">
+              <p className="text-green-600 dark:text-green-400">{success}</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Kullanıcı Seçimi */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Davet Edilecek Kullanıcı
               </label>
               <select
                 value={selectedUser || ''}
                 onChange={(e) => setSelectedUser(Number(e.target.value) || null)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-foreground"
                 required
               >
                 <option value="">Kullanıcı seçin</option>
@@ -263,7 +263,7 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
                 ))}
               </select>
               {filteredUsers.length === 0 && (
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="text-sm text-muted-foreground mt-2">
                   Davet edilebilecek kullanıcı bulunmuyor. Tüm kullanıcılar zaten takımda veya davet edilmiş.
                 </p>
               )}
@@ -271,21 +271,21 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
 
             {/* Seçili Kullanıcı Bilgileri */}
             {selectedUser && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="font-medium text-gray-900 mb-2">Seçili Kullanıcı Bilgileri</h3>
+              <div className="bg-muted/50 p-4 rounded-lg border">
+                <h3 className="font-medium text-foreground mb-2">Seçili Kullanıcı Bilgileri</h3>
                 {(() => {
                   const user = users.find(u => u.id === selectedUser);
                   if (!user) return null;
                   
                   return (
-                    <div className="space-y-2">
-                      <p><span className="font-medium">Ad:</span> {user.full_name}</p>
-                      <p><span className="font-medium">Kullanıcı Adı:</span> @{user.username}</p>
-                      <p>
+                    <div className="space-y-2 text-sm">
+                      <p className="text-foreground"><span className="font-medium">Ad:</span> {user.full_name}</p>
+                      <p className="text-foreground"><span className="font-medium">Kullanıcı Adı:</span> @{user.username}</p>
+                      <p className="text-foreground">
                         <span className="font-medium">Mevkiler:</span> 
                         {user.positions.length > 0 ? getSortedPositions(user.positions).join(', ') : 'Mevki belirtilmemiş'}
                       </p>
-                      <p>
+                      <p className="text-foreground">
                         <span className="font-medium">Uygunluk:</span>
                         <span className={`ml-2 px-2 py-1 rounded-full text-xs ${getAvailabilityStatusColor(user.availability_status)}`}>
                           {getAvailabilityStatusText(user.availability_status)}
@@ -299,14 +299,14 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
 
             {/* Mesaj */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-foreground mb-2">
                 Davet Mesajı (İsteğe bağlı)
               </label>
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-foreground placeholder:text-muted-foreground"
                 placeholder="Davet mesajınızı yazın..."
               />
             </div>
@@ -316,14 +316,14 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300"
+                className="px-4 py-2 text-muted-foreground bg-secondary rounded-lg hover:bg-secondary/80 transition-colors"
               >
                 İptal
               </button>
               <button
                 type="submit"
                 disabled={isLoading || !selectedUser}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isLoading ? 'Gönderiliyor...' : 'Davet Gönder'}
               </button>

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/navbar';
+import TeamNavigation from '@/components/TeamNavigation';
 
 interface Player {
   id: number; // players tablosundaki id
@@ -514,6 +515,9 @@ export default function TeamFormationPage() {
               </Badge>
             </div>
           )}
+
+          {/* Navigation */}
+          <TeamNavigation teamId={teamId} isAuthorized={isAuthorized} />
 
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Formasyon Seçimi ve Saha */}

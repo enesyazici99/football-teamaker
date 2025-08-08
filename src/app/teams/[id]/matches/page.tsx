@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/navbar';
 import ConfirmModal from '@/components/ConfirmModal';
+import TeamNavigation from '@/components/TeamNavigation';
 
 interface Match {
   id: number;
@@ -309,6 +310,9 @@ export default function TeamMatchesPage() {
               </Badge>
             </div>
           )}
+
+          {/* Navigation */}
+          <TeamNavigation teamId={teamId} isAuthorized={isAuthorized} />
 
           {/* Maçlar */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/navbar';
 import SetCaptainModal from '@/components/SetCaptainModal';
 import AuthorizedMemberModal from '@/components/AuthorizedMemberModal';
+import TeamNavigation from '@/components/TeamNavigation';
 
 interface Team {
   id: number;
@@ -57,7 +58,7 @@ export default function TeamPage() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isUpdating, setIsUpdating] = useState(false);
+
   const [error, setError] = useState('');
   const [showSetCaptainModal, setShowSetCaptainModal] = useState(false);
   const [showAuthorizedMemberModal, setShowAuthorizedMemberModal] = useState(false);
@@ -111,44 +112,7 @@ export default function TeamPage() {
   const isAuthorized = isTeamOwner || team?.captain_id === currentUser?.id || (team?.authorized_members || []).includes(currentUser?.id || 0);
   const isTeamMember = players.some(player => player.user_id === currentUser?.id && player.is_active);
 
-  const handleTeamSizeChange = async (newSize: number) => {
-    if (!team || !isAuthorized) return;
-    
-    setIsUpdating(true);
-    try {
-      const response = await fetch(`/api/teams/${teamId}/team-size`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ team_size: newSize })
-      });
 
-      if (response.ok) {
-        const result = await response.json();
-        setTeam(result.team);
-        (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
-          type: 'success',
-          title: 'Başarılı!',
-          message: 'Takım boyutu başarıyla güncellendi',
-          duration: 3000
-        });
-      } else {
-        throw new Error('Takım boyutu güncellenemedi');
-      }
-    } catch (error) {
-      setError('Takım boyutu güncellenemedi');
-      (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
-        type: 'error',
-        title: 'Hata!',
-        message: 'Takım boyutu güncellenemedi',
-        duration: 4000
-      });
-    } finally {
-      setIsUpdating(false);
-    }
-  };
 
   const getAvailabilityStatusText = (status: string) => {
     switch (status) {
@@ -276,27 +240,9 @@ export default function TeamPage() {
                       Kaptan
                     </Badge>
                   )}
-                  <Badge variant="outline">
-                    Takım Boyutu:
+                  <Badge variant="secondary">
+                    {team.team_size}v{team.team_size} Takım
                   </Badge>
-                  {isAuthorized ? (
-                    <select
-                      value={team.team_size}
-                      onChange={(e) => handleTeamSizeChange(parseInt(e.target.value))}
-                      disabled={isUpdating}
-                      className="border border-border bg-background rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                    >
-                      {[6, 7, 8, 9, 10, 11].map((size) => (
-                        <option key={size} value={size}>
-                          {size} Kişilik
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <Badge variant="secondary">
-                      {team.team_size} Kişilik
-                    </Badge>
-                  )}
                 </div>
               </div>
               {isAuthorized && (
@@ -325,6 +271,9 @@ export default function TeamPage() {
               </Badge>
             </div>
           )}
+
+          {/* Navigation */}
+          <TeamNavigation teamId={teamId} isAuthorized={isAuthorized} />
 
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Oyuncular */}

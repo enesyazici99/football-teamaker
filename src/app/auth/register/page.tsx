@@ -69,32 +69,32 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-green-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Logo ve Başlık */}
         <div className="text-center">
           <div className="mx-auto h-12 w-12 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center">
             <span className="text-2xl font-bold text-white">⚽</span>
           </div>
-          <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
+          <h2 className="mt-6 text-3xl font-bold tracking-tight text-foreground">
             Halısaha Takım Yöneticisi
           </h2>
         </div>
 
         {/* Register Form */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200 p-8">
+        <div className="bg-card/80 backdrop-blur-sm rounded-xl shadow-xl border border-border p-8">
           <div className="space-y-1 pb-6">
-            <h3 className="text-2xl font-semibold text-center text-gray-900">
+            <h3 className="text-2xl font-semibold text-center text-foreground">
               Kayıt Ol
             </h3>
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-destructive/10 border border-destructive/50 text-destructive px-4 py-3 rounded-lg text-sm">
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="h-5 w-5 text-destructive" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                     </svg>
                   </div>
@@ -106,7 +106,7 @@ export default function RegisterPage() {
             )}
             
             <div className="space-y-2">
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="fullName" className="block text-sm font-medium text-foreground">
                 Ad Soyad
               </label>
               <input
@@ -116,13 +116,13 @@ export default function RegisterPage() {
                 required
                 value={formData.fullName}
                 onChange={handleChange}
-                className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 text-base"
+                className="w-full h-11 px-3 py-2 border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors duration-200 text-base text-foreground placeholder:text-muted-foreground dark:bg-slate-800 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                 placeholder="Adınız ve soyadınız"
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="username" className="block text-sm font-medium text-foreground">
                 Kullanıcı Adı
               </label>
               <input
@@ -132,13 +132,13 @@ export default function RegisterPage() {
                 required
                 value={formData.username}
                 onChange={handleChange}
-                className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 text-base"
+                className="w-full h-11 px-3 py-2 border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors duration-200 text-base text-foreground placeholder:text-muted-foreground dark:bg-slate-800 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                 placeholder="Kullanıcı adınız"
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-foreground">
                 Email
               </label>
               <input
@@ -148,13 +148,13 @@ export default function RegisterPage() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 text-base"
+                className="w-full h-11 px-3 py-2 border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors duration-200 text-base text-foreground placeholder:text-muted-foreground dark:bg-slate-800 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                 placeholder="Email adresiniz"
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-foreground">
                 Şifre
               </label>
               <input
@@ -164,13 +164,13 @@ export default function RegisterPage() {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 text-base"
+                className="w-full h-11 px-3 py-2 border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors duration-200 text-base text-foreground placeholder:text-muted-foreground dark:bg-slate-800 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                 placeholder="Şifreniz (en az 6 karakter)"
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground">
                 Şifre Tekrar
               </label>
               <input
@@ -180,7 +180,7 @@ export default function RegisterPage() {
                 required
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 text-base"
+                className="w-full h-11 px-3 py-2 border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors duration-200 text-base text-foreground placeholder:text-muted-foreground dark:bg-slate-800 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                 placeholder="Şifrenizi tekrar girin"
               />
             </div>
@@ -202,11 +202,11 @@ export default function RegisterPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Zaten hesabınız var mı?{' '}
               <Link 
                 href="/auth/login" 
-                className="font-semibold text-blue-600 hover:text-blue-500 transition-colors duration-200"
+                className="font-semibold text-primary hover:text-primary/80 transition-colors duration-200"
               >
                 Giriş yapın
               </Link>

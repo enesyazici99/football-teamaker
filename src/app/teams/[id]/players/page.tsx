@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import SetCaptainModal from '@/components/SetCaptainModal';
 import AuthorizedMemberModal from '@/components/AuthorizedMemberModal';
 import Navbar from '@/components/navbar';
+import TeamNavigation from '@/components/TeamNavigation';
 
 interface Player {
   id: number;
@@ -291,6 +292,9 @@ export default function TeamPlayersPage() {
               </Badge>
             </div>
           )}
+
+          {/* Navigation */}
+          <TeamNavigation teamId={teamId} isAuthorized={isAuthorized} />
 
           {/* Oyuncular */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">

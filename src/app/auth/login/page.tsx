@@ -83,7 +83,7 @@ export default function LoginPage() {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-3 py-2 border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors duration-200"
+                className="w-full px-3 py-2 border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors duration-200 dark:bg-slate-800 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                 placeholder="ornek@email.com veya kullaniciadi"
               />
             </div>
@@ -99,7 +99,7 @@ export default function LoginPage() {
                 required
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-3 py-2 border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors duration-200"
+                className="w-full px-3 py-2 border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-colors duration-200 dark:bg-slate-800 dark:border-slate-600 dark:text-white dark:placeholder:text-slate-400"
                 placeholder="Şifrenizi girin"
               />
             </div>
@@ -114,9 +114,12 @@ export default function LoginPage() {
           </form>
           
           <div className="mt-6 text-center">
-            <Badge variant="outline" className="text-sm">
-              Hesabınız yok mu? <a href="/auth/register" className="text-primary hover:underline font-medium">Kayıt olun</a>
-            </Badge>
+            <p className="text-sm text-muted-foreground">
+              Hesabınız yok mu?{' '}
+              <a href="/auth/register" className="text-primary hover:underline font-medium">
+                Kayıt olun
+              </a>
+            </p>
           </div>
         </div>
       </div>
