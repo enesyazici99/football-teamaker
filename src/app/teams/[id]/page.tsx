@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -69,9 +69,9 @@ export default function TeamPage() {
     if (teamId) {
       fetchTeamData();
     }
-  }, [teamId]);
+  }, [teamId, fetchTeamData]);
 
-  const fetchTeamData = async () => {
+  const fetchTeamData = useCallback(async () => {
     try {
       const [teamResponse, playersResponse, matchesResponse, userResponse] = await Promise.all([
         fetch(`/api/teams/${teamId}`, { credentials: 'include' }),
@@ -104,7 +104,7 @@ export default function TeamPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [teamId]);
 
   // Takım sahibi veya yetkili üye kontrolü
   const isTeamOwner = team?.created_by === currentUser?.id;
@@ -128,7 +128,7 @@ export default function TeamPage() {
       if (response.ok) {
         const result = await response.json();
         setTeam(result.team);
-        (window as any).showToast({
+        (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
           type: 'success',
           title: 'Başarılı!',
           message: 'Takım boyutu başarıyla güncellendi',
@@ -225,7 +225,7 @@ export default function TeamPage() {
             onClick={() => router.push('/dashboard')}
             className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
           >
-            Dashboard'a Dön
+            Dashboard&apos;a Dön
           </button>
         </div>
       </div>
@@ -244,7 +244,7 @@ export default function TeamPage() {
             onClick={() => router.push('/dashboard')}
             className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
           >
-            Dashboard'a Dön
+            Dashboard&apos;a Dön
           </button>
         </div>
       </div>

@@ -41,19 +41,7 @@ interface Match {
   team_name?: string;
 }
 
-interface Player {
-  id: number;
-  user_id: number;
-  team_id: number;
-  position?: string;
-  skill_level: number;
-  is_active: boolean;
-  joined_at: string;
-  full_name: string;
-  username: string;
-  positions?: string[];
-  availability_status?: string;
-}
+
 
 interface TeamInvitation {
   id: number;
@@ -243,10 +231,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handlePageNavigation = (page: string) => {
-    setSelectedPage(page);
-    setShowTeamSelection(true);
-  };
+
 
   const handleTeamSelect = (teamId: number) => {
     switch (selectedPage) {

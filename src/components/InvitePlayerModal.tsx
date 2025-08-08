@@ -53,9 +53,9 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
     if (isOpen) {
       fetchData();
     }
-  }, [isOpen]);
+  }, [isOpen, fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [usersResponse, playersResponse, invitationsResponse] = await Promise.all([
         fetch('/api/users'),
@@ -80,7 +80,7 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
     } catch (error) {
       console.error('Veriler yüklenemedi:', error);
     }
-  };
+  }, [teamId]);
 
   // Filtrelenmiş kullanıcılar - zaten takımda olan veya davet edilmiş olanları çıkar
   const filteredUsers = users.filter(user => {
@@ -126,7 +126,7 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
       const data = await response.json();
 
       if (response.ok) {
-        (window as any).showToast({
+        (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
           type: 'success',
           title: 'Başarılı!',
           message: 'Davet başarıyla gönderildi',
@@ -141,7 +141,7 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
         }, 1000);
       } else {
         const errorMessage = data.error || 'Davet gönderilemedi';
-        (window as any).showToast({
+        (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
           type: 'error',
           title: 'Hata!',
           message: errorMessage,

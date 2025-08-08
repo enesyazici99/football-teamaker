@@ -36,9 +36,9 @@ export default function SetCaptainModal({ isOpen, onClose, teamId, teamName, cur
     if (isOpen) {
       fetchPlayers();
     }
-  }, [isOpen]);
+  }, [isOpen, fetchPlayers]);
 
-  const fetchPlayers = async () => {
+  const fetchPlayers = useCallback(async () => {
     try {
       const response = await fetch(`/api/teams/${teamId}/players`);
       if (response.ok) {
@@ -48,7 +48,7 @@ export default function SetCaptainModal({ isOpen, onClose, teamId, teamName, cur
     } catch (error) {
       console.error('Oyuncular yüklenemedi:', error);
     }
-  };
+  }, [teamId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +76,7 @@ export default function SetCaptainModal({ isOpen, onClose, teamId, teamName, cur
       const data = await response.json();
 
       if (response.ok) {
-        (window as any).showToast({
+        (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
           type: 'success',
           title: 'Başarılı!',
           message: 'Takım kaptanı başarıyla belirlendi',
@@ -88,7 +88,7 @@ export default function SetCaptainModal({ isOpen, onClose, teamId, teamName, cur
         }, 1000);
       } else {
         const errorMessage = data.error || 'Kaptan belirlenemedi';
-        (window as any).showToast({
+        (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
           type: 'error',
           title: 'Hata!',
           message: errorMessage,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,9 +55,9 @@ export default function TeamPlayersPage() {
     if (teamId) {
       fetchTeamData();
     }
-  }, [teamId]);
+  }, [teamId, fetchTeamData]);
 
-  const fetchTeamData = async () => {
+  const fetchTeamData = useCallback(async () => {
     try {
       const [teamResponse, playersResponse, userResponse] = await Promise.all([
         fetch(`/api/teams/${teamId}`, { credentials: 'include' }),
@@ -85,7 +85,7 @@ export default function TeamPlayersPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [teamId]);
 
   // Takım sahibi veya yetkili üye kontrolü
   const isTeamOwner = team?.created_by === currentUser?.id;
@@ -224,7 +224,7 @@ export default function TeamPlayersPage() {
             onClick={() => router.push('/dashboard')}
             className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
           >
-            Dashboard'a Dön
+            Dashboard&apos;a Dön
           </button>
         </div>
       </div>
@@ -243,7 +243,7 @@ export default function TeamPlayersPage() {
             onClick={() => router.push('/dashboard')}
             className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
           >
-            Dashboard'a Dön
+            Dashboard&apos;a Dön
           </button>
         </div>
       </div>

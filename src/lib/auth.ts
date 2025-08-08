@@ -33,10 +33,10 @@ export function generateToken(user: User): string {
   );
 }
 
-export function verifyToken(token: string): any {
+export function verifyToken(token: string): { id: number; username: string; email: string } | null {
   try {
-    return jwt.verify(token, JWT_SECRET);
-  } catch (error) {
+    return jwt.verify(token, JWT_SECRET) as { id: number; username: string; email: string };
+  } catch {
     return null;
   }
 }

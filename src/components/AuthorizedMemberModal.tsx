@@ -44,9 +44,9 @@ export default function AuthorizedMemberModal({
       fetchTeamData();
       fetchPlayers();
     }
-  }, [isOpen]);
+  }, [isOpen, fetchTeamData, fetchPlayers]);
 
-  const fetchTeamData = async () => {
+  const fetchTeamData = useCallback(async () => {
     try {
       const response = await fetch(`/api/teams/${teamId}`);
       if (response.ok) {
@@ -56,9 +56,9 @@ export default function AuthorizedMemberModal({
     } catch (error) {
       console.error('Takım bilgileri yüklenemedi:', error);
     }
-  };
+  }, [teamId]);
 
-  const fetchPlayers = async () => {
+  const fetchPlayers = useCallback(async () => {
     try {
       const response = await fetch(`/api/teams/${teamId}/players`);
       if (response.ok) {
@@ -73,7 +73,7 @@ export default function AuthorizedMemberModal({
     } catch (error) {
       console.error('Oyuncular yüklenemedi:', error);
     }
-  };
+  }, [teamId]);
 
   const handleAddAuthorized = async () => {
     if (!selectedPlayer) {
@@ -101,7 +101,7 @@ export default function AuthorizedMemberModal({
       const data = await response.json();
 
       if (response.ok) {
-        (window as any).showToast({
+        (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
           type: 'success',
           title: 'Başarılı!',
           message: 'Yetkili üye başarıyla eklendi',
@@ -113,7 +113,7 @@ export default function AuthorizedMemberModal({
         }, 1000);
       } else {
         const errorMessage = data.error || 'Yetkili üye eklenemedi';
-        (window as any).showToast({
+        (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
           type: 'error',
           title: 'Hata!',
           message: errorMessage,
@@ -156,7 +156,7 @@ export default function AuthorizedMemberModal({
       const data = await response.json();
 
       if (response.ok) {
-        (window as any).showToast({
+        (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
           type: 'success',
           title: 'Başarılı!',
           message: 'Yetkili üye başarıyla çıkarıldı',
@@ -167,7 +167,7 @@ export default function AuthorizedMemberModal({
         }, 1000);
       } else {
         const errorMessage = data.error || 'Yetkili üye çıkarılamadı';
-        (window as any).showToast({
+        (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
           type: 'error',
           title: 'Hata!',
           message: errorMessage,

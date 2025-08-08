@@ -35,7 +35,7 @@ export default function LoginPage() {
         const data = await response.json();
         setError(data.error || 'Giriş başarısız');
       }
-    } catch (error) {
+    } catch {
       setError('Bir hata oluştu');
     } finally {
       setIsLoading(false);

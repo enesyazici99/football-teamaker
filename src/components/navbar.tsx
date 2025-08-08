@@ -17,7 +17,7 @@ interface NavbarProps {
 export default function Navbar({ teamId, teamName, isAuthorized }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: number; username: string; email: string; full_name: string } | null>(null);
 
   useEffect(() => {
     fetchCurrentUser();

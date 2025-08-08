@@ -78,7 +78,7 @@ export default function TeamMatchesPage() {
       };
       loadData();
     }
-  }, [teamId]);
+  }, [teamId, fetchTeamData, fetchMatches, fetchPlayers]);
 
   const fetchTeamData = async () => {
     try {
@@ -98,7 +98,7 @@ export default function TeamMatchesPage() {
       console.error('Takım bilgileri yüklenemedi:', error);
       throw error;
     }
-  };
+  }, [teamId]);
 
   const fetchMatches = async () => {
     try {
@@ -117,7 +117,7 @@ export default function TeamMatchesPage() {
       console.error('Maçlar yüklenemedi:', error);
       throw error;
     }
-  };
+  }, [teamId]);
 
   const fetchPlayers = async () => {
     try {
@@ -136,7 +136,7 @@ export default function TeamMatchesPage() {
       console.error('Oyuncular yüklenemedi:', error);
       throw error;
     }
-  };
+  }, [teamId]);
 
   // Takım sahibi veya yetkili üye kontrolü
   const isTeamOwner = team?.created_by === currentUser?.id;
@@ -204,7 +204,7 @@ export default function TeamMatchesPage() {
       });
 
       if (response.ok) {
-        (window as any).showToast({
+        (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
           type: 'success',
           title: 'Başarılı!',
           message: 'Maç başarıyla silindi',
@@ -250,7 +250,7 @@ export default function TeamMatchesPage() {
             onClick={() => router.push('/dashboard')}
             className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
           >
-            Dashboard'a Dön
+            Dashboard&apos;a Dön
           </button>
         </div>
       </div>
@@ -269,7 +269,7 @@ export default function TeamMatchesPage() {
             onClick={() => router.push('/dashboard')}
             className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
           >
-            Dashboard'a Dön
+            Dashboard&apos;a Dön
           </button>
         </div>
       </div>

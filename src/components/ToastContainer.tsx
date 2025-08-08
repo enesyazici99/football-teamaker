@@ -18,7 +18,7 @@ export default function ToastContainer() {
 
   // Global toast fonksiyonunu window objesine ekle
   if (typeof window !== 'undefined') {
-    (window as any).showToast = addToast;
+    (window as { showToast?: (toast: Omit<ToastType, 'id'>) => void }).showToast = addToast;
   }
 
   return (

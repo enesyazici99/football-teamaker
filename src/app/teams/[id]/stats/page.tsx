@@ -66,16 +66,16 @@ export default function TeamStatsPage() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [ratings, setRatings] = useState<PlayerRating[]>([]);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('week');
 
   useEffect(() => {
     fetchData();
-  }, [teamId]);
+  }, [teamId, fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [teamResponse, playersResponse, matchesResponse, ratingsResponse, userResponse] = await Promise.all([
         fetch(`/api/teams/${teamId}`, { credentials: 'include' }),
@@ -114,7 +114,7 @@ export default function TeamStatsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [teamId]);
 
   const getPlayerAverageRating = (playerId: number, period: 'week' | 'month' | 'year') => {
     const now = new Date();
@@ -204,7 +204,7 @@ export default function TeamStatsPage() {
             onClick={() => router.push('/dashboard')}
             className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
           >
-            Dashboard'a Dön
+            Dashboard&apos;a Dön
           </button>
         </div>
       </div>

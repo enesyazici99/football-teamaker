@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -80,9 +80,9 @@ export default function MatchDetailPage() {
     if (teamId && matchId) {
       fetchMatchData();
     }
-  }, [teamId, matchId]);
+  }, [teamId, matchId, fetchMatchData]);
 
-  const fetchMatchData = async () => {
+  const fetchMatchData = useCallback(async () => {
     try {
       const [matchResponse, teamResponse, playersResponse, ratingsResponse, userResponse] = await Promise.all([
         fetch(`/api/matches/${matchId}`, { credentials: 'include' }),
@@ -124,7 +124,7 @@ export default function MatchDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [teamId, matchId]);
 
   const isMatchCompleted = () => {
     if (!match) return false;
@@ -141,9 +141,7 @@ export default function MatchDetailPage() {
     return matchDate > now;
   };
 
-  const isMatchEditable = () => {
-    return isAuthorized && (isMatchInFuture() || isMatchCompleted());
-  };
+
 
   const isScoreEditable = () => {
     return isAuthorized && isMatchCompleted();

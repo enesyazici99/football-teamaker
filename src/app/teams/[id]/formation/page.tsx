@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -241,9 +241,9 @@ export default function TeamFormationPage() {
     if (teamId) {
       fetchTeamData();
     }
-  }, [teamId]);
+  }, [teamId, fetchTeamData]);
 
-  const fetchTeamData = async () => {
+  const fetchTeamData = useCallback(async () => {
     try {
       const [teamResponse, playersResponse, formationResponse, userResponse] = await Promise.all([
         fetch(`/api/teams/${teamId}`, { credentials: 'include' }),
@@ -316,7 +316,7 @@ export default function TeamFormationPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [teamId, selectedFormation, availableFormations, team]);
 
   const handlePositionClick = (position: Position) => {
     // Yetki kontrolü

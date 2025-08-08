@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,9 +43,9 @@ export default function CreateMatchPage() {
     if (teamId) {
       fetchTeamData();
     }
-  }, [teamId]);
+  }, [teamId, fetchTeamData]);
 
-  const fetchTeamData = async () => {
+  const fetchTeamData = useCallback(async () => {
     try {
       const [teamResponse, userResponse] = await Promise.all([
         fetch(`/api/teams/${teamId}`, { credentials: 'include' }),
@@ -66,7 +66,7 @@ export default function CreateMatchPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [teamId]);
 
   // Takım sahibi veya yetkili üye kontrolü
   const isTeamOwner = team?.created_by === currentUser?.id;
@@ -99,7 +99,7 @@ export default function CreateMatchPage() {
       });
 
       if (response.ok) {
-        (window as any).showToast({
+        (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
           type: 'success',
           title: 'Başarılı',
           message: 'Maç başarıyla oluşturuldu',
@@ -139,7 +139,7 @@ export default function CreateMatchPage() {
             onClick={() => router.push('/dashboard')}
             className="mt-4"
           >
-            Dashboard'a Dön
+            Dashboard&apos;a Dön
           </Button>
         </div>
       </div>

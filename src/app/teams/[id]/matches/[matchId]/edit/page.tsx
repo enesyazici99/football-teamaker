@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -62,9 +62,9 @@ export default function EditMatchPage() {
     if (teamId && matchId) {
       fetchData();
     }
-  }, [teamId, matchId]);
+  }, [teamId, matchId, fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [matchResponse, teamResponse, userResponse] = await Promise.all([
         fetch(`/api/matches/${matchId}`, { credentials: 'include' }),
@@ -106,7 +106,7 @@ export default function EditMatchPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [teamId, matchId]);
 
   // Yetki kontrolü
   const isTeamOwner = team?.created_by === currentUser?.id;
