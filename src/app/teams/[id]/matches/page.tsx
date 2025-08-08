@@ -61,25 +61,6 @@ export default function TeamMatchesPage() {
   const params = useParams();
   const teamId = params.id as string;
 
-  useEffect(() => {
-    if (teamId) {
-      const loadData = async () => {
-        setIsLoading(true);
-        try {
-          console.log('Loading data for team:', teamId);
-          await Promise.all([fetchTeamData(), fetchMatches(), fetchPlayers()]);
-          console.log('Data loaded successfully');
-        } catch (error) {
-          console.error('Veri yüklenirken hata oluştu:', error);
-          setError('Veriler yüklenirken bir hata oluştu');
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      loadData();
-    }
-  }, [teamId, fetchTeamData, fetchMatches, fetchPlayers]);
-
   const fetchTeamData = useCallback(async () => {
     try {
       console.log('Fetching team data for team:', teamId);
@@ -137,6 +118,25 @@ export default function TeamMatchesPage() {
       throw error;
     }
   }, [teamId]);
+
+  useEffect(() => {
+    if (teamId) {
+      const loadData = async () => {
+        setIsLoading(true);
+        try {
+          console.log('Loading data for team:', teamId);
+          await Promise.all([fetchTeamData(), fetchMatches(), fetchPlayers()]);
+          console.log('Data loaded successfully');
+        } catch (error) {
+          console.error('Veri yüklenirken hata oluştu:', error);
+          setError('Veriler yüklenirken bir hata oluştu');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      loadData();
+    }
+  }, [teamId, fetchTeamData, fetchMatches, fetchPlayers]);
 
   // Takım sahibi veya yetkili üye kontrolü
   const isTeamOwner = team?.created_by === currentUser?.id;
