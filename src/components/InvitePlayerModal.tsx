@@ -149,9 +149,9 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
         });
         setError(errorMessage);
       }
-    } catch (error) {
+    } catch {
       const errorMessage = 'Davet gönderilemedi';
-      (window as any).showToast({
+      (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
         type: 'error',
         title: 'Hata!',
         message: errorMessage,

@@ -14,7 +14,7 @@ interface NavbarProps {
   isAuthorized?: boolean;
 }
 
-export default function Navbar({ teamId, teamName, isAuthorized }: NavbarProps) {
+export default function Navbar({ teamId, teamName }: NavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [currentUser, setCurrentUser] = useState<{ id: number; username: string; email: string; full_name: string } | null>(null);

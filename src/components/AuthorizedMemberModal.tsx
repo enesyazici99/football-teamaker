@@ -33,7 +33,7 @@ export default function AuthorizedMemberModal({
   currentAuthorizedMembers = [] 
 }: AuthorizedMemberModalProps) {
   const [players, setPlayers] = useState<Player[]>([]);
-  const [team, setTeam] = useState<any>(null);
+  const [team, setTeam] = useState<{ id: number; name: string; created_by: number; authorized_members?: number[] } | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -73,7 +73,7 @@ export default function AuthorizedMemberModal({
     } catch (error) {
       console.error('Oyuncular yüklenemedi:', error);
     }
-  }, [teamId]);
+  }, [teamId, team?.created_by]);
 
   const handleAddAuthorized = async () => {
     if (!selectedPlayer) {
@@ -121,9 +121,9 @@ export default function AuthorizedMemberModal({
         });
         setError(errorMessage);
       }
-    } catch (error) {
+    } catch {
       const errorMessage = 'Yetkili üye eklenemedi';
-      (window as any).showToast({
+      (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
         type: 'error',
         title: 'Hata!',
         message: errorMessage,
@@ -175,9 +175,9 @@ export default function AuthorizedMemberModal({
         });
         setError(errorMessage);
       }
-    } catch (error) {
+    } catch {
       const errorMessage = 'Yetkili üye çıkarılamadı';
-      (window as any).showToast({
+      (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
         type: 'error',
         title: 'Hata!',
         message: errorMessage,

@@ -96,9 +96,9 @@ export default function SetCaptainModal({ isOpen, onClose, teamId, teamName, cur
         });
         setError(errorMessage);
       }
-    } catch (error) {
+    } catch {
       const errorMessage = 'Kaptan belirlenemedi';
-      (window as any).showToast({
+      (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
         type: 'error',
         title: 'Hata!',
         message: errorMessage,
