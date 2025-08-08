@@ -58,12 +58,6 @@ export default function EditMatchPage() {
     away_score: 0
   });
 
-  useEffect(() => {
-    if (teamId && matchId) {
-      fetchData();
-    }
-  }, [teamId, matchId, fetchData]);
-
   const fetchData = useCallback(async () => {
     try {
       const [matchResponse, teamResponse, userResponse] = await Promise.all([
@@ -107,6 +101,12 @@ export default function EditMatchPage() {
       setIsLoading(false);
     }
   }, [teamId, matchId]);
+
+  useEffect(() => {
+    if (teamId && matchId) {
+      fetchData();
+    }
+  }, [teamId, matchId, fetchData]);
 
   // Yetki kontrolü
   const isTeamOwner = team?.created_by === currentUser?.id;
