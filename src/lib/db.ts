@@ -472,6 +472,11 @@ export const userDB = {
       RETURNING *
     `;
     return result[0] || null;
+  },
+
+  delete: async (id: number) => {
+    const result = await sql`DELETE FROM users WHERE id = ${id} RETURNING *`;
+    return result[0] || null;
   }
 };
 
@@ -589,6 +594,11 @@ export const teamDB = {
     }
     
     return await teamDB.getById(teamId);
+  },
+
+  delete: async (id: number) => {
+    const result = await sql`DELETE FROM teams WHERE id = ${id} RETURNING *`;
+    return result[0] || null;
   }
 };
 
