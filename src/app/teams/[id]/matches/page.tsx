@@ -119,7 +119,7 @@ export default function TeamMatchesPage() {
     }
   }, [teamId]);
 
-  const fetchPlayers = async () => {
+  const fetchPlayers = useCallback(async () => {
     try {
       console.log('Fetching players for team:', teamId);
       const response = await fetch(`/api/teams/${teamId}/players`, {
