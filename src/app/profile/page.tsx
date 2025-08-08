@@ -40,10 +40,6 @@ export default function ProfilePage() {
     availability_status: 'available'
   });
 
-  useEffect(() => {
-    fetchUserData();
-  }, [fetchUserData]);
-
   const fetchUserData = useCallback(async () => {
     try {
       const response = await fetch('/api/auth/me', { credentials: 'include' });
@@ -66,6 +62,10 @@ export default function ProfilePage() {
       setIsLoading(false);
     }
   }, [router]);
+
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData]);
 
   const handleSave = async () => {
     setIsSaving(true);
