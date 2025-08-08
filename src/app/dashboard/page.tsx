@@ -4,30 +4,101 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import Navbar from '@/components/navbar';
+import InvitePlayerModal from '@/components/InvitePlayerModal';
+import ConfirmModal from '@/components/ConfirmModal';
+import TeamSelectionModal from '@/components/TeamSelectionModal';
 
 interface User {
   id: number;
   username: string;
   email: string;
   full_name: string;
+  positions?: string[];
+  availability_status?: string;
+}
+
+interface Team {
+  id: number;
+  name: string;
+  description?: string;
+  created_by: number;
+  captain_id?: number;
+  created_at: string;
+}
+
+interface Match {
+  id: number;
+  team_id: number;
+  match_date: string;
+  location?: string;
+  opponent_team?: string;
+  status: string;
+  home_score: number;
+  away_score: number;
+  created_at: string;
+  team_name?: string;
+}
+
+interface Player {
+  id: number;
+  user_id: number;
+  team_id: number;
+  position?: string;
+  skill_level: number;
+  is_active: boolean;
+  joined_at: string;
+  full_name: string;
+  username: string;
+  positions?: string[];
+  availability_status?: string;
+}
+
+interface TeamInvitation {
+  id: number;
+  team_id: number;
+  invited_user_id: number;
+  invited_by: number;
+  status: string;
+  message?: string;
+  created_at: string;
+  team_name: string;
+  invited_by_name: string;
 }
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [invitations, setInvitations] = useState<TeamInvitation[]>([]);
+  const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [teamToLeave, setTeamToLeave] = useState<number | null>(null);
+  const [showTeamSelection, setShowTeamSelection] = useState(false);
+  const [selectedPage, setSelectedPage] = useState<string>('');
   const router = useRouter();
 
   useEffect(() => {
-    // Kullanıcı bilgilerini al
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/auth/me');
+        const response = await fetch('/api/auth/me', { credentials: 'include' });
         if (!response.ok) {
           router.push('/auth/login');
           return;
         }
         const userData = await response.json();
         setUser(userData.user);
+        
+        // Kullanıcının takımlarını ve davetlerini yükle
+        await Promise.all([
+          fetchTeams(),
+          fetchInvitations(),
+          fetchUpcomingMatches()
+        ]);
       } catch (error) {
         console.error('Auth check failed:', error);
         router.push('/auth/login');
@@ -39,150 +110,417 @@ export default function DashboardPage() {
     checkAuth();
   }, [router]);
 
-  const handleLogout = async () => {
+  const fetchTeams = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/');
+      const response = await fetch('/api/teams', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setTeams(data.teams || []);
+      }
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error('Teams fetch failed:', error);
     }
   };
 
+  const fetchInvitations = async () => {
+    try {
+      const response = await fetch('/api/teams/invitations', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setInvitations(data.invitations || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch invitations:', error);
+    }
+  };
+
+  const fetchUpcomingMatches = async () => {
+    try {
+      const response = await fetch('/api/matches/upcoming', { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setUpcomingMatches(data.matches || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch upcoming matches:', error);
+    }
+  };
+
+  const handleInvitePlayer = (team: Team) => {
+    setSelectedTeam(team);
+    setShowInviteModal(true);
+  };
+
+  const handleLeaveTeam = async (teamId: number) => {
+    setTeamToLeave(teamId);
+    setShowLeaveConfirm(true);
+  };
+
+  const confirmLeaveTeam = async () => {
+    if (!teamToLeave) return;
+
+    try {
+      const response = await fetch('/api/teams/leave', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          team_id: teamToLeave,
+        }),
+      });
+
+      if (response.ok) {
+        (window as any).showToast({
+          type: 'success',
+          title: 'Başarılı',
+          message: 'Takımdan başarıyla ayrıldınız',
+          duration: 3000
+        });
+        // Takımları yeniden yükle
+        await fetchTeams();
+      } else {
+        const data = await response.json();
+        (window as any).showToast({
+          type: 'error',
+          title: 'Hata',
+          message: data.error || 'Takımdan ayrılma işlemi başarısız',
+          duration: 4000
+        });
+      }
+    } catch (error) {
+      (window as any).showToast({
+        type: 'error',
+        title: 'Hata',
+        message: 'Takımdan ayrılma işlemi başarısız',
+        duration: 4000
+      });
+    } finally {
+      setTeamToLeave(null);
+      setShowLeaveConfirm(false);
+    }
+  };
+
+  const handleInvitationResponse = async (invitationId: number, action: 'accept' | 'reject') => {
+    try {
+      const response = await fetch('/api/teams/invitations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          invitation_id: invitationId,
+          action: action,
+        }),
+      });
+
+      if (response.ok) {
+        (window as any).showToast({
+          type: 'success',
+          title: 'Başarılı',
+          message: action === 'accept' ? 'Davet kabul edildi' : 'Davet reddedildi',
+          duration: 3000
+        });
+        // Davetleri ve takımları yeniden yükle
+        await Promise.all([fetchInvitations(), fetchTeams()]);
+      } else {
+        const data = await response.json();
+        (window as any).showToast({
+          type: 'error',
+          title: 'Hata',
+          message: data.error || 'İşlem başarısız',
+          duration: 4000
+        });
+      }
+    } catch (error) {
+      (window as any).showToast({
+        type: 'error',
+        title: 'Hata',
+        message: 'İşlem başarısız',
+        duration: 4000
+      });
+    }
+  };
+
+  const handlePageNavigation = (page: string) => {
+    setSelectedPage(page);
+    setShowTeamSelection(true);
+  };
+
+  const handleTeamSelect = (teamId: number) => {
+    switch (selectedPage) {
+      case 'players':
+        router.push(`/teams/${teamId}/players`);
+        break;
+      case 'matches':
+        router.push(`/teams/${teamId}/matches`);
+        break;
+      case 'formation':
+        router.push(`/teams/${teamId}/formation`);
+        break;
+      case 'stats':
+        router.push(`/teams/${teamId}/stats`);
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Takım sahibi veya yetkili üye kontrolü
+  const isTeamOwner = (team: Team) => team.created_by === user?.id;
+  const isAuthorized = (team: Team) => isTeamOwner(team) || team.captain_id === user?.id;
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-green-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Yükleniyor...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 text-lg">Yükleniyor...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      
+      <div className="pt-20 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">
-                ⚽ Halısaha Takım Yöneticisi
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-700">
-                Hoş geldin, {user?.full_name}
-              </span>
-              <Button variant="outline" onClick={handleLogout}>
-                Çıkış Yap
-              </Button>
-            </div>
+          {/* Ana İçerik */}
+          <div className="grid lg:grid-cols-2 gap-8">
+            {/* Takımlar */}
+            <Card className="card-dark">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-foreground">
+                  Takımlarım ({teams.length})
+                </CardTitle>
+                <CardDescription className="text-muted-foreground">
+                  Sahip olduğunuz ve üye olduğunuz takımlar
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {teams.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-2xl">⚽</span>
+                      </div>
+                      <p className="text-lg font-medium mb-4 text-foreground">Henüz takımınız yok.</p>
+                      <Button
+                        onClick={() => router.push('/teams/create')}
+                        className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+                      >
+                        İlk Takımınızı Oluşturun
+                      </Button>
+                    </div>
+                  ) : (
+                    teams.map((team) => (
+                      <div key={team.id} className="p-4 bg-muted/50 rounded-lg border border-border">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h3 className="font-semibold text-foreground">{team.name}</h3>
+                            {team.description && (
+                              <p className="text-sm text-muted-foreground mt-1">{team.description}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            {isTeamOwner(team) && (
+                              <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                Takım Sahibi
+                              </Badge>
+                            )}
+                            {team.captain_id === user?.id && !isTeamOwner(team) && (
+                              <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                Kaptan
+                              </Badge>
+                            )}
+                            {!isTeamOwner(team) && team.captain_id !== user?.id && (
+                              <Badge variant="secondary">
+                                Üye
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            onClick={() => router.push(`/teams/${team.id}`)}
+                            size="sm"
+                            variant="outline"
+                          >
+                            Görüntüle
+                          </Button>
+                          {isAuthorized(team) && (
+                            <Button
+                              onClick={() => handleInvitePlayer(team)}
+                              size="sm"
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              Oyuncu Davet Et
+                            </Button>
+                          )}
+                          {!isTeamOwner(team) && (
+                            <Button
+                              onClick={() => handleLeaveTeam(team.id)}
+                              size="sm"
+                              variant="destructive"
+                            >
+                              Ayrıl
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Yaklaşan Maçlar */}
+            <Card className="card-dark">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-foreground">
+                  Yaklaşan Maçlar ({upcomingMatches.length})
+                </CardTitle>
+                <CardDescription className="text-muted-foreground">
+                  Takımlarınızın gelecek maçları
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {upcomingMatches.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span className="text-2xl">⚽</span>
+                      </div>
+                      <p className="text-lg font-medium mb-4 text-foreground">Yaklaşan maçınız yok.</p>
+                    </div>
+                  ) : (
+                    upcomingMatches.map((match) => (
+                      <div key={match.id} className="p-4 bg-muted/50 rounded-lg border border-border">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h3 className="font-semibold text-foreground">
+                              {match.team_name} - {match.opponent_team || 'Rakip Takım'}
+                            </h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {new Date(match.match_date).toLocaleDateString('tr-TR', { 
+                                weekday: 'long', 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              })} - {new Date(match.match_date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                            {match.location && (
+                              <p className="text-sm text-muted-foreground">
+                                📍 {match.location}
+                              </p>
+                            )}
+                          </div>
+                          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            Planlandı
+                          </Badge>
+                        </div>
+                        <div className="flex justify-end">
+                          <Button
+                            onClick={() => router.push(`/teams/${match.team_id}/matches/${match.id}`)}
+                            size="sm"
+                            variant="outline"
+                          >
+                            Detayları Gör
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Davetler - Sadece davet varsa göster */}
+            {invitations.length > 0 && (
+              <Card className="card-dark">
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold text-foreground">
+                    Davetler ({invitations.length})
+                  </CardTitle>
+                  <CardDescription className="text-muted-foreground">
+                    Bekleyen takım davetleri
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {invitations.map((invitation) => (
+                      <div key={invitation.id} className="p-4 bg-muted/50 rounded-lg border border-border">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h3 className="font-semibold text-foreground">{invitation.team_name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Davet eden: {invitation.invited_by_name}
+                            </p>
+                            {invitation.message && (
+                              <p className="text-sm text-muted-foreground mt-1">{invitation.message}</p>
+                            )}
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            {new Date(invitation.created_at).toLocaleDateString('tr-TR')}
+                          </Badge>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => handleInvitationResponse(invitation.id, 'accept')}
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            Kabul Et
+                          </Button>
+                          <Button
+                            onClick={() => handleInvitationResponse(invitation.id, 'reject')}
+                            size="sm"
+                            variant="destructive"
+                          >
+                            Reddet
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Dashboard
-          </h2>
-          <p className="text-gray-600">
-            Halısaha ekibinizi yönetmek için aşağıdaki seçenekleri kullanın.
-          </p>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <span className="text-2xl mr-2">👥</span>
-                Oyuncular
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Oyuncularınızı yönetin ve pozisyonlarını ayarlayın.
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <span className="text-2xl mr-2">⚽</span>
-                Maçlar
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Yeni maç planlayın ve mevcut maçları görüntüleyin.
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <span className="text-2xl mr-2">🎯</span>
-                Mevkilendirme
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Saha dizilimlerini ve oyuncu mevkilendirmelerini yapın.
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <span className="text-2xl mr-2">📊</span>
-                İstatistikler
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Takım ve oyuncu performans istatistiklerini görüntüleyin.
-              </CardDescription>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Son Maçlar</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center text-gray-500 py-8">
-                <p>Henüz maç kaydı bulunmuyor.</p>
-                <Button className="mt-4" variant="outline">
-                  İlk Maçı Planla
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Oyuncu Durumu</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center text-gray-500 py-8">
-                <p>Henüz oyuncu kaydı bulunmuyor.</p>
-                <Button className="mt-4" variant="outline">
-                  Oyuncu Ekle
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+      {/* Modals */}
+      {showInviteModal && selectedTeam && (
+        <InvitePlayerModal
+          isOpen={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          teamId={selectedTeam.id}
+          teamName={selectedTeam.name}
+        />
+      )}
+      {showLeaveConfirm && (
+        <ConfirmModal
+          isOpen={showLeaveConfirm}
+          onClose={() => setShowLeaveConfirm(false)}
+          onConfirm={confirmLeaveTeam}
+          title="Takımdan Ayrıl"
+          message="Bu takımdan ayrılmak istediğinizden emin misiniz? Bu işlem geri alınamaz."
+        />
+      )}
+      {showTeamSelection && (
+        <TeamSelectionModal
+          isOpen={showTeamSelection}
+          onClose={() => setShowTeamSelection(false)}
+          onTeamSelect={handleTeamSelect}
+          title="Takım Seçin"
+          message="Hangi takım için işlem yapmak istiyorsunuz?"
+        />
+      )}
     </div>
   );
 } 

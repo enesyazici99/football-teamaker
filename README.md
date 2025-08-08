@@ -114,17 +114,47 @@ Uygulama [http://localhost:3000](http://localhost:3000) adresinde çalışacakt�
 - `position`: Maçtaki pozisyon
 - `created_at`: Oluşturulma tarihi
 
-## 🚀 Deployment
+## 🚀 Deployment (Vercel)
 
-### Vercel ile Deployment
+### 1. Vercel Hesabı Oluşturun
 
 1. [Vercel](https://vercel.com) hesabı oluşturun
-2. GitHub repository'nizi bağlayın
-3. Environment variables'ları Vercel dashboard'da ayarlayın:
-   - `DATABASE_URL`: Neon PostgreSQL connection string
-   - `JWT_SECRET`: Güvenli JWT secret key
+2. GitHub hesabınızı bağlayın
 
-4. Deploy edin!
+### 2. Projeyi Deploy Edin
+
+1. Vercel Dashboard'a gidin
+2. "New Project" butonuna tıklayın
+3. GitHub repository'nizi seçin
+4. Proje ayarlarını yapılandırın:
+
+#### Environment Variables
+
+Aşağıdaki environment variable'ları Vercel'de ayarlayın:
+
+```env
+DATABASE_URL=postgresql://username:password@host:port/database
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+```
+
+#### Build Settings
+
+- **Framework Preset**: Next.js
+- **Build Command**: `npm run build`
+- **Output Directory**: `.next`
+- **Install Command**: `npm install`
+
+### 3. Deploy
+
+1. "Deploy" butonuna tıklayın
+2. Deployment tamamlanana kadar bekleyin
+3. Uygulamanız canlıda çalışmaya başlayacak
+
+### 4. Custom Domain (Opsiyonel)
+
+1. Vercel Dashboard'da projenizi seçin
+2. "Settings" > "Domains" bölümüne gidin
+3. Custom domain'inizi ekleyin
 
 ## 📝 Kullanım
 

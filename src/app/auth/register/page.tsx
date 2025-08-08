@@ -3,9 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -24,7 +21,6 @@ export default function RegisterPage() {
     setIsLoading(true);
     setError('');
 
-    // Şifre kontrolü
     if (formData.password !== formData.confirmPassword) {
       setError('Şifreler eşleşmiyor');
       setIsLoading(false);
@@ -57,7 +53,6 @@ export default function RegisterPage() {
         throw new Error(data.error || 'Kayıt başarısız');
       }
 
-      // Başarılı kayıt sonrası giriş sayfasına yönlendir
       router.push('/auth/login?message=Kayıt başarılı! Şimdi giriş yapabilirsiniz.');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Bir hata oluştu');
@@ -74,124 +69,150 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-green-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-center text-2xl font-bold text-gray-900">
-              Halısaha Takım Yöneticisi
-            </CardTitle>
-            <CardDescription className="text-center">
-              Yeni hesap oluşturun
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md">
-                  {error}
+        {/* Logo ve Başlık */}
+        <div className="text-center">
+          <div className="mx-auto h-12 w-12 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center">
+            <span className="text-2xl font-bold text-white">⚽</span>
+          </div>
+          <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
+            Halısaha Takım Yöneticisi
+          </h2>
+        </div>
+
+        {/* Register Form */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200 p-8">
+          <div className="space-y-1 pb-6">
+            <h3 className="text-2xl font-semibold text-center text-gray-900">
+              Kayıt Ol
+            </h3>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium">{error}</p>
+                  </div>
                 </div>
-              )}
-              
-              <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
-                  Ad Soyad
-                </label>
-                <Input
-                  id="fullName"
-                  name="fullName"
-                  type="text"
-                  required
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  className="mt-1"
-                  placeholder="Adınız ve soyadınız"
-                />
               </div>
-
-              <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                  Kullanıcı Adı
-                </label>
-                <Input
-                  id="username"
-                  name="username"
-                  type="text"
-                  required
-                  value={formData.username}
-                  onChange={handleChange}
-                  className="mt-1"
-                  placeholder="Kullanıcı adınız"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Email
-                </label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="mt-1"
-                  placeholder="Email adresiniz"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Şifre
-                </label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="mt-1"
-                  placeholder="Şifreniz (en az 6 karakter)"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                  Şifre Tekrar
-                </label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  className="mt-1"
-                  placeholder="Şifrenizi tekrar girin"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Kayıt yapılıyor...' : 'Kayıt Ol'}
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                Zaten hesabınız var mı?{' '}
-                <Link href="/auth/login" className="font-medium text-blue-600 hover:text-blue-500">
-                  Giriş yapın
-                </Link>
-              </p>
+            )}
+            
+            <div className="space-y-2">
+              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+                Ad Soyad
+              </label>
+              <input
+                id="fullName"
+                name="fullName"
+                type="text"
+                required
+                value={formData.fullName}
+                onChange={handleChange}
+                className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 text-base"
+                placeholder="Adınız ve soyadınız"
+              />
             </div>
-          </CardContent>
-        </Card>
+
+            <div className="space-y-2">
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                Kullanıcı Adı
+              </label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                required
+                value={formData.username}
+                onChange={handleChange}
+                className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 text-base"
+                placeholder="Kullanıcı adınız"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 text-base"
+                placeholder="Email adresiniz"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Şifre
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 text-base"
+                placeholder="Şifreniz (en az 6 karakter)"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                Şifre Tekrar
+              </label>
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 text-base"
+                placeholder="Şifrenizi tekrar girin"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full h-11 text-base font-semibold bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white rounded-lg transition-all duration-200 transform hover:scale-[1.02] mt-6"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                  Kayıt yapılıyor...
+                </div>
+              ) : (
+                'Kayıt Ol'
+              )}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Zaten hesabınız var mı?{' '}
+              <Link 
+                href="/auth/login" 
+                className="font-semibold text-blue-600 hover:text-blue-500 transition-colors duration-200"
+              >
+                Giriş yapın
+              </Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

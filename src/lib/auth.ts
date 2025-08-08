@@ -45,9 +45,15 @@ export async function createUser(username: string, email: string, password: stri
   try {
     const hashedPassword = await hashPassword(password);
     
-    // Kullanıcı adı veya email zaten var mı kontrol et
-    const existingUser = await userDB.getByUsername(username);
-    if (existingUser) {
+    // Kullanıcı adı zaten var mı kontrol et
+    const existingUserByUsername = await userDB.getByUsername(username);
+    if (existingUserByUsername) {
+      return null;
+    }
+    
+    // Email zaten var mı kontrol et
+    const existingUserByEmail = await userDB.getByEmail(email);
+    if (existingUserByEmail) {
       return null;
     }
     
