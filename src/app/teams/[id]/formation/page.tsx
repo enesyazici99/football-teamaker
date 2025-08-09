@@ -233,6 +233,9 @@ export default function TeamFormationPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
+  const [hoveredPositionId, setHoveredPositionId] = useState<string | null>(null);
+  const [draggedPlayer, setDraggedPlayer] = useState<Player | null>(null);
+  const [draggedFromPosition, setDraggedFromPosition] = useState<string | null>(null);
   const router = useRouter();
   const params = useParams();
   const teamId = params.id as string;
@@ -408,6 +411,57 @@ export default function TeamFormationPage() {
     setSelectedFormation(formationName);
   };
 
+  // Drag & Drop fonksiyonları
+  const handleDragStart = (e: React.DragEvent, player: Player, fromPositionId?: string) => {
+    const currentIsAuthorized = (team?.created_by === currentUser?.id) || 
+                                (team?.captain_id === currentUser?.id) || 
+                                (team?.authorized_members?.includes(currentUser?.id || 0) || false);
+    
+    if (!currentIsAuthorized) return;
+    
+    setDraggedPlayer(player);
+    if (fromPositionId) {
+      setDraggedFromPosition(fromPositionId);
+    }
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, targetPositionId: string) => {
+    e.preventDefault();
+    
+    if (!draggedPlayer) return;
+    
+    const updatedPositions = positions.map(pos => {
+      // Hedef pozisyon
+      if (pos.id === targetPositionId) {
+        return { ...pos, player: draggedPlayer };
+      }
+      // Eski pozisyonu temizle
+      if (draggedFromPosition && pos.id === draggedFromPosition) {
+        return { ...pos, player: undefined };
+      }
+      // Diğer pozisyonlardan da temizle (eğer aynı oyuncu başka yerdeyse)
+      if (!draggedFromPosition && pos.player?.id === draggedPlayer.id) {
+        return { ...pos, player: undefined };
+      }
+      return pos;
+    });
+    
+    setPositions(updatedPositions);
+    setDraggedPlayer(null);
+    setDraggedFromPosition(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedPlayer(null);
+    setDraggedFromPosition(null);
+  };
+
   const handleSaveFormation = async () => {
     // Yetki kontrolü - team ve currentUser yüklendiğinden emin ol
     const currentIsAuthorized = (team?.created_by === currentUser?.id) || 
@@ -415,6 +469,13 @@ export default function TeamFormationPage() {
                                 (team?.authorized_members?.includes(currentUser?.id || 0) || false);
     
     if (!currentIsAuthorized) {
+      console.log('Kaydetme yetki kontrolü:', {
+        teamOwnerId: team?.created_by,
+        currentUserId: currentUser?.id,
+        teamCaptainId: team?.captain_id,
+        authorizedMembers: team?.authorized_members,
+        currentIsAuthorized
+      });
       (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Yetki Hatası!',
@@ -653,10 +714,21 @@ export default function TeamFormationPage() {
                       <div
                         key={position.id}
                         onClick={() => handlePositionClick(position)}
-                        className={`absolute w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all group ${
+                        onMouseEnter={() => position.player && setHoveredPositionId(position.id)}
+                        onMouseLeave={() => setHoveredPositionId(null)}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, position.id)}
+                        draggable={position.player && isAuthorized}
+                        onDragStart={(e) => position.player && handleDragStart(e, position.player, position.id)}
+                        onDragEnd={handleDragEnd}
+                        className={`absolute w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all ${
                           position.player
-                            ? 'bg-blue-500 border-blue-600 text-white shadow-lg hover:bg-red-500 hover:border-red-600'
-                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                            ? hoveredPositionId === position.id && isAuthorized
+                              ? 'bg-red-500 border-red-600 text-white shadow-lg cursor-move'
+                              : 'bg-blue-500 border-blue-600 text-white shadow-lg'
+                            : draggedPlayer
+                              ? 'bg-green-100 border-green-400 hover:bg-green-200'
+                              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                         } ${isAuthorized ? 'cursor-pointer hover:scale-105' : 'cursor-not-allowed opacity-75'}`}
                         style={{
                           left: `${position.x}%`,
@@ -666,18 +738,18 @@ export default function TeamFormationPage() {
                       >
                         {position.player ? (
                           <>
-                            {/* Normal görünüm */}
-                            <div className="text-center group-hover:hidden">
-                              <div className="text-xs font-bold truncate max-w-12">
-                                {position.player.full_name.split(' ')[0]}
-                              </div>
-                              <div className="text-xs opacity-75">{position.name}</div>
-                            </div>
-                            {/* Hover durumunda çarpı işareti */}
-                            {isAuthorized && (
-                              <div className="hidden group-hover:flex flex-col items-center justify-center">
+                            {/* Normal görünüm veya hover durumu */}
+                            {hoveredPositionId === position.id && isAuthorized ? (
+                              <div className="flex flex-col items-center justify-center">
                                 <X className="w-8 h-8 text-white opacity-90" />
                                 <span className="text-xs mt-1">Kaldır</span>
+                              </div>
+                            ) : (
+                              <div className="text-center">
+                                <div className="text-xs font-bold truncate max-w-12">
+                                  {position.player.full_name.split(' ')[0]}
+                                </div>
+                                <div className="text-xs opacity-75">{position.name}</div>
                               </div>
                             )}
                           </>
@@ -720,13 +792,16 @@ export default function TeamFormationPage() {
                         <div
                           key={player.id}
                           onClick={() => handlePlayerSelect(player)}
+                          draggable={isAuthorized && !isPlayerOnField}
+                          onDragStart={(e) => !isPlayerOnField && handleDragStart(e, player)}
+                          onDragEnd={handleDragEnd}
                           className={`p-3 rounded-lg transition-colors border-2 ${
                             selectedPlayer?.id === player.id
                               ? 'bg-blue-100 border-blue-500 dark:bg-blue-900 dark:border-blue-400'
                               : isPlayerOnField
                                 ? 'bg-green-50 border-green-300 dark:bg-green-900/20 dark:border-green-700'
                                 : 'bg-muted/50 border-transparent hover:bg-muted'
-                          } ${isAuthorized ? 'cursor-pointer' : 'cursor-not-allowed opacity-75'}`}
+                          } ${isAuthorized ? (isPlayerOnField ? 'cursor-default' : 'cursor-grab active:cursor-grabbing') : 'cursor-not-allowed opacity-75'}`}
                         >
                           <div className="flex justify-between items-center">
                             <div>
