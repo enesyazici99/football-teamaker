@@ -56,7 +56,7 @@ export default function ProfilePage() {
         positions: userData.user.positions || [],
         availability_status: userData.user.availability_status || 'available'
       });
-    } catch (error) {
+    } catch {
       setError('Kullanıcı bilgileri yüklenemedi');
     } finally {
       setIsLoading(false);
@@ -91,7 +91,7 @@ export default function ProfilePage() {
         const errorData = await response.json();
         setError(errorData.error || 'Profil güncellenemedi');
       }
-    } catch (error) {
+    } catch {
       setError('Profil güncellenemedi');
     } finally {
       setIsSaving(false);

@@ -118,7 +118,7 @@ export default function MatchDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [teamId, matchId]);
+  }, [teamId, matchId, currentUser?.id]);
 
   useEffect(() => {
     if (teamId && matchId) {
@@ -134,12 +134,7 @@ export default function MatchDetailPage() {
     return now > matchEndTime;
   };
 
-  const isMatchInFuture = () => {
-    if (!match) return false;
-    const matchDate = new Date(match.match_date);
-    const now = new Date();
-    return matchDate > now;
-  };
+
 
 
 
@@ -254,7 +249,7 @@ export default function MatchDetailPage() {
       } else {
         throw new Error('Puanlama kaydedilemedi');
       }
-    } catch (error) {
+    } catch {
       (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Hata!',
@@ -296,7 +291,7 @@ export default function MatchDetailPage() {
       } else {
         throw new Error('Skor güncellenemedi');
       }
-    } catch (error) {
+    } catch {
       (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Hata!',
@@ -326,7 +321,7 @@ export default function MatchDetailPage() {
       } else {
         throw new Error('Maç silinemedi');
       }
-    } catch (error) {
+    } catch {
       (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Hata!',

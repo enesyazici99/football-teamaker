@@ -40,10 +40,7 @@ interface Position {
   player?: Player;
 }
 
-interface Formation {
-  name: string;
-  team_size: number;
-}
+
 
 interface FormationOption {
   name: string;

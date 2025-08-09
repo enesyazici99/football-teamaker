@@ -66,7 +66,7 @@ export default function DashboardPage() {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [teamToLeave, setTeamToLeave] = useState<number | null>(null);
   const [showTeamSelection, setShowTeamSelection] = useState(false);
-  const [selectedPage, setSelectedPage] = useState<string>('');
+  const [selectedPage] = useState<string>('');
   const router = useRouter();
 
   useEffect(() => {
@@ -104,8 +104,8 @@ export default function DashboardPage() {
         const data = await response.json();
         setTeams(data.teams || []);
       }
-    } catch (error) {
-      console.error('Teams fetch failed:', error);
+    } catch {
+      console.error('Teams fetch failed');
     }
   };
 
@@ -221,7 +221,7 @@ export default function DashboardPage() {
           duration: 4000
         });
       }
-    } catch (error) {
+    } catch {
       (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Hata',

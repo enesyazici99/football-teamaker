@@ -95,7 +95,7 @@ export default function EditMatchPage() {
         const userData = await userResponse.json();
         setCurrentUser(userData.user);
       }
-    } catch (error) {
+    } catch {
       setError('Veriler yüklenirken hata oluştu');
     } finally {
       setIsLoading(false);
