@@ -928,7 +928,7 @@ export default function TeamFormationPage() {
                         onTouchStart={isMobile && position.player && isAuthorized && !selectedPlayer ? (e) => handleTouchStart(e, position.player!, position.id) : undefined}
                         onTouchMove={isMobile && position.player && isAuthorized && !selectedPlayer ? handleTouchMove : undefined}
                         onTouchEnd={isMobile && position.player && isAuthorized && !selectedPlayer ? handleTouchEnd : undefined}
-                        className={`absolute w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all touch-none ${
+                        className={`absolute w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all ${
                           position.player
                             ? hoveredPositionId === position.id && isAuthorized
                               ? 'bg-red-500 border-red-600 text-white shadow-lg cursor-move'
@@ -998,7 +998,13 @@ export default function TeamFormationPage() {
                       return (
                         <div
                           key={player.id}
-                          onClick={() => handlePlayerSelect(player)}
+                          onClick={(e) => {
+                            // Mobilde touch eventleri ile çakışmayı önle
+                            if (!isAuthorized) return;
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handlePlayerSelect(player);
+                          }}
                           draggable={!isMobile && isAuthorized && !isPlayerOnField}
                           onDragStart={!isMobile && !isPlayerOnField ? (e) => {
                             handleDragStart(e, player);
@@ -1013,15 +1019,15 @@ export default function TeamFormationPage() {
                           onTouchStart={isMobile && isAuthorized && !isPlayerOnField && !selectedPlayer ? (e) => handleTouchStart(e, player) : undefined}
                           onTouchMove={isMobile && isAuthorized && !isPlayerOnField && !selectedPlayer ? handleTouchMove : undefined}
                           onTouchEnd={isMobile && isAuthorized && !isPlayerOnField && !selectedPlayer ? handleTouchEnd : undefined}
-                          className={`p-3 rounded-lg transition-colors border-2 touch-none ${
+                          className={`p-3 rounded-lg transition-colors border-2 ${
                             selectedPlayer?.id === player.id
                               ? 'bg-blue-100 border-blue-500 dark:bg-blue-900 dark:border-blue-400'
                               : isPlayerOnField
                                 ? 'bg-green-50 border-green-300 dark:bg-green-900/20 dark:border-green-700'
                                 : 'bg-muted/50 border-transparent hover:bg-muted'
-                          } ${isAuthorized ? (isPlayerOnField ? 'cursor-default' : 'cursor-grab active:cursor-grabbing') : 'cursor-not-allowed opacity-75'}`}
+                          } ${isAuthorized ? 'cursor-pointer' : 'cursor-not-allowed opacity-75'}`}
                         >
-                          <div className="flex justify-between items-center">
+                          <div className="flex justify-between items-center pointer-events-none">
                             <div>
                               <div className="flex items-center gap-2">
                                 <p className="font-medium text-foreground">{player.full_name}</p>

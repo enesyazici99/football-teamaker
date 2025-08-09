@@ -40,27 +40,26 @@ interface InvitePlayerModalProps {
 }
 
 export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }: InvitePlayerModalProps) {
-  const [users, setUsers] = useState<User[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<User[]>([]);
   const [teamPlayers, setTeamPlayers] = useState<Player[]>([]);
   const [teamInvitations, setTeamInvitations] = useState<TeamInvitation[]>([]);
-  const [selectedUser, setSelectedUser] = useState<number | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
-  const fetchData = useCallback(async () => {
+  // Takım oyuncularını ve davetleri getir
+  const fetchTeamData = useCallback(async () => {
     try {
-      const [usersResponse, playersResponse, invitationsResponse] = await Promise.all([
-        fetch('/api/users'),
+      const [playersResponse, invitationsResponse, userResponse] = await Promise.all([
         fetch(`/api/teams/${teamId}/players`),
-        fetch('/api/teams/invitations')
+        fetch('/api/teams/invitations'),
+        fetch('/api/auth/me')
       ]);
-
-      if (usersResponse.ok) {
-        const usersData = await usersResponse.json();
-        setUsers(usersData.users || []);
-      }
 
       if (playersResponse.ok) {
         const playersData = await playersResponse.json();
@@ -71,6 +70,11 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
         const invitationsData = await invitationsResponse.json();
         setTeamInvitations(invitationsData.invitations || []);
       }
+
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        setCurrentUserId(userData.user?.id || null);
+      }
     } catch (error) {
       console.error('Veriler yüklenemedi:', error);
     }
@@ -78,26 +82,61 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
 
   useEffect(() => {
     if (isOpen) {
-      fetchData();
+      fetchTeamData();
     }
-  }, [isOpen, fetchData]);
+  }, [isOpen, fetchTeamData]);
 
-  // Filtrelenmiş kullanıcılar - zaten takımda olan veya davet edilmiş olanları çıkar
-  const filteredUsers = users.filter(user => {
-    // Takımda olan oyuncuları filtrele
-    const isInTeam = teamPlayers.some(player => player.user_id === user.id && player.is_active);
-    if (isInTeam) return false;
+  // Kullanıcı araması yap
+  const searchUsers = useCallback(async (query: string) => {
+    if (query.length < 3) {
+      setSearchResults([]);
+      return;
+    }
 
-    // Zaten davet edilmiş olanları filtrele
-    const isAlreadyInvited = teamInvitations.some(invitation => 
-      invitation.invited_user_id === user.id && 
-      invitation.team_id === teamId && 
-      invitation.status === 'pending'
-    );
-    if (isAlreadyInvited) return false;
+    setIsSearching(true);
+    try {
+      const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`);
+      if (response.ok) {
+        const data = await response.json();
+        const users = data.users || [];
+        
+        // Filtreleme: kendini, takımda olanları ve zaten davet edilenleri çıkar
+        const filteredUsers = users.filter((user: User) => {
+          // Kendi kendini davet etmeyi engelle
+          if (user.id === currentUserId) return false;
+          
+          // Takımda olan oyuncuları filtrele
+          const isInTeam = teamPlayers.some(player => player.user_id === user.id && player.is_active);
+          if (isInTeam) return false;
 
-    return true;
-  });
+          // Zaten davet edilmiş olanları filtrele
+          const isAlreadyInvited = teamInvitations.some(invitation => 
+            invitation.invited_user_id === user.id && 
+            invitation.team_id === teamId && 
+            invitation.status === 'pending'
+          );
+          if (isAlreadyInvited) return false;
+
+          return true;
+        });
+        
+        setSearchResults(filteredUsers);
+      }
+    } catch (error) {
+      console.error('Arama hatası:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [currentUserId, teamPlayers, teamInvitations, teamId]);
+
+  // Debounced arama
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      searchUsers(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, searchUsers]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,7 +157,7 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
         },
         body: JSON.stringify({
           team_id: teamId,
-          invited_user_id: selectedUser,
+          invited_user_id: selectedUser.id,
           message: message.trim() || undefined,
         }),
       });
@@ -134,8 +173,10 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
         });
         setSelectedUser(null);
         setMessage('');
+        setSearchQuery('');
+        setSearchResults([]);
         // Verileri yenile
-        fetchData();
+        fetchTeamData();
         setTimeout(() => {
           onClose();
         }, 1000);
@@ -244,27 +285,71 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Kullanıcı Seçimi */}
+            {/* Kullanıcı Arama */}
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Davet Edilecek Kullanıcı
+                Kullanıcı Ara
               </label>
-              <select
-                value={selectedUser || ''}
-                onChange={(e) => setSelectedUser(Number(e.target.value) || null)}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-foreground"
-                required
-              >
-                <option value="">Kullanıcı seçin</option>
-                {filteredUsers.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.full_name} (@{user.username}) - {user.positions.length > 0 ? getSortedPositions(user.positions).join(', ') : 'Mevki belirtilmemiş'}
-                  </option>
-                ))}
-              </select>
-              {filteredUsers.length === 0 && (
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setSelectedUser(null);
+                  }}
+                  placeholder="İsim veya kullanıcı adı yazın (en az 3 harf)..."
+                  className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-foreground placeholder:text-muted-foreground pr-10"
+                />
+                {isSearching && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  </div>
+                )}
+              </div>
+              
+              {searchQuery.length > 0 && searchQuery.length < 3 && (
                 <p className="text-sm text-muted-foreground mt-2">
-                  Davet edilebilecek kullanıcı bulunmuyor. Tüm kullanıcılar zaten takımda veya davet edilmiş.
+                  En az 3 harf yazın
+                </p>
+              )}
+
+              {/* Arama Sonuçları */}
+              {searchResults.length > 0 && !selectedUser && (
+                <div className="mt-2 max-h-48 overflow-y-auto border border-border rounded-lg bg-background">
+                  {searchResults.map((user) => (
+                    <button
+                      key={user.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setSearchQuery(user.full_name);
+                        setSearchResults([]);
+                      }}
+                      className="w-full px-3 py-2 text-left hover:bg-muted/50 transition-colors border-b last:border-b-0"
+                    >
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-medium text-foreground">{user.full_name}</p>
+                          <p className="text-sm text-muted-foreground">@{user.username}</p>
+                          {user.positions.length > 0 && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {getSortedPositions(user.positions).join(', ')}
+                            </p>
+                          )}
+                        </div>
+                        <span className={`px-2 py-1 rounded-full text-xs ${getAvailabilityStatusColor(user.availability_status)}`}>
+                          {getAvailabilityStatusText(user.availability_status)}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {searchQuery.length >= 3 && searchResults.length === 0 && !isSearching && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Kullanıcı bulunamadı veya tüm eşleşen kullanıcılar zaten takımda/davet edilmiş.
                 </p>
               )}
             </div>
@@ -272,28 +357,35 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
             {/* Seçili Kullanıcı Bilgileri */}
             {selectedUser && (
               <div className="bg-muted/50 p-4 rounded-lg border">
-                <h3 className="font-medium text-foreground mb-2">Seçili Kullanıcı Bilgileri</h3>
-                {(() => {
-                  const user = users.find(u => u.id === selectedUser);
-                  if (!user) return null;
-                  
-                  return (
-                    <div className="space-y-2 text-sm">
-                      <p className="text-foreground"><span className="font-medium">Ad:</span> {user.full_name}</p>
-                      <p className="text-foreground"><span className="font-medium">Kullanıcı Adı:</span> @{user.username}</p>
-                      <p className="text-foreground">
-                        <span className="font-medium">Mevkiler:</span> 
-                        {user.positions.length > 0 ? getSortedPositions(user.positions).join(', ') : 'Mevki belirtilmemiş'}
-                      </p>
-                      <p className="text-foreground">
-                        <span className="font-medium">Uygunluk:</span>
-                        <span className={`ml-2 px-2 py-1 rounded-full text-xs ${getAvailabilityStatusColor(user.availability_status)}`}>
-                          {getAvailabilityStatusText(user.availability_status)}
-                        </span>
-                      </p>
-                    </div>
-                  );
-                })()}
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-medium text-foreground">Seçili Kullanıcı</h3>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedUser(null);
+                      setSearchQuery('');
+                    }}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <p className="text-foreground"><span className="font-medium">Ad:</span> {selectedUser.full_name}</p>
+                  <p className="text-foreground"><span className="font-medium">Kullanıcı Adı:</span> @{selectedUser.username}</p>
+                  <p className="text-foreground">
+                    <span className="font-medium">Mevkiler:</span> 
+                    {selectedUser.positions.length > 0 ? ' ' + getSortedPositions(selectedUser.positions).join(', ') : ' Mevki belirtilmemiş'}
+                  </p>
+                  <p className="text-foreground">
+                    <span className="font-medium">Uygunluk:</span>
+                    <span className={`ml-2 px-2 py-1 rounded-full text-xs ${getAvailabilityStatusColor(selectedUser.availability_status)}`}>
+                      {getAvailabilityStatusText(selectedUser.availability_status)}
+                    </span>
+                  </p>
+                </div>
               </div>
             )}
 
@@ -333,4 +425,4 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
       </div>
     </div>
   );
-} 
+}

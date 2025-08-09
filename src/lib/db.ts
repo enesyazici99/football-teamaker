@@ -474,6 +474,19 @@ export const userDB = {
     return result[0] || null;
   },
 
+  searchUsers: async (query: string) => {
+    const searchTerm = `%${query}%`;
+    const result = await sql`
+      SELECT id, username, full_name, email, positions, availability_status 
+      FROM users 
+      WHERE LOWER(full_name) LIKE LOWER(${searchTerm}) 
+      OR LOWER(username) LIKE LOWER(${searchTerm})
+      ORDER BY full_name ASC
+      LIMIT 20
+    `;
+    return result;
+  },
+
   delete: async (id: number) => {
     try {
       // Start a transaction
