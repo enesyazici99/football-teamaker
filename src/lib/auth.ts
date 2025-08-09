@@ -9,6 +9,8 @@ export interface User {
   username: string;
   email: string;
   full_name: string;
+  positions?: string[];
+  availability_status?: string;
   created_at: string;
 }
 
@@ -100,6 +102,8 @@ export async function authenticateUser(username: string, password: string): Prom
       username: user.username,
       email: user.email,
       full_name: user.full_name,
+      positions: user.positions || [],
+      availability_status: user.availability_status || 'available',
       created_at: user.created_at
     };
   } catch (error) {
@@ -121,6 +125,8 @@ export async function getUserById(id: number): Promise<User | null> {
       username: user.username,
       email: user.email,
       full_name: user.full_name,
+      positions: user.positions || [],
+      availability_status: user.availability_status || 'available',
       created_at: user.created_at
     };
   } catch (error) {

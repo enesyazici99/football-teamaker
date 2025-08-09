@@ -48,6 +48,7 @@ export default function ProfilePage() {
         return;
       }
       const userData = await response.json();
+      console.log('User data from API:', userData.user); // Debug için
       setUser(userData.user);
       setFormData({
         full_name: userData.user.full_name || '',
