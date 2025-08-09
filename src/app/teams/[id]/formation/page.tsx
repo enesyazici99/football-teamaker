@@ -575,7 +575,7 @@ export default function TeamFormationPage() {
       const touchRelativeX = ((touch.clientX - fieldRect.left) / fieldRect.width) * 100;
       const touchRelativeY = ((touch.clientY - fieldRect.top) / fieldRect.height) * 100;
       
-      let closestPosition: Position | null = null;
+      let closestPositionId: string | null = null;
       let closestDistance = Infinity;
       
       positions.forEach(pos => {
@@ -586,12 +586,12 @@ export default function TeamFormationPage() {
         
         if (distance < closestDistance && distance < 20) { // 20% yakınlık eşiği
           closestDistance = distance;
-          closestPosition = pos;
+          closestPositionId = pos.id;
         }
       });
       
-      if (closestPosition) {
-        handleMobileDrop(closestPosition.id);
+      if (closestPositionId) {
+        handleMobileDrop(closestPositionId);
       }
     }
     
