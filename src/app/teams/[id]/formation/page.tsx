@@ -484,55 +484,101 @@ export default function TeamFormationPage() {
     if (!currentIsAuthorized) return;
     
     e.preventDefault();
+    e.stopPropagation();
     setTouchedPlayer(player);
     if (fromPositionId) {
       setTouchedFromPosition(fromPositionId);
     }
     
-    // Touch ile sürükleme efekti için
+    // Sürükleme göstergesi için bir klon oluştur
     const touch = e.touches[0];
     const element = e.currentTarget as HTMLElement;
-    element.style.position = 'fixed';
-    element.style.zIndex = '9999';
-    element.style.left = `${touch.clientX - 32}px`;
-    element.style.top = `${touch.clientY - 32}px`;
-    element.style.pointerEvents = 'none';
-    element.style.opacity = '0.8';
+    const clone = element.cloneNode(true) as HTMLElement;
+    
+    // Klonu stillendir ve body'e ekle
+    clone.id = 'drag-clone';
+    clone.style.position = 'fixed';
+    clone.style.zIndex = '9999';
+    clone.style.left = `${touch.clientX - 32}px`;
+    clone.style.top = `${touch.clientY - 32}px`;
+    clone.style.pointerEvents = 'none';
+    clone.style.opacity = '0.8';
+    clone.style.transform = 'scale(0.9)';
+    clone.style.transition = 'none';
+    document.body.appendChild(clone);
+    
+    // Orijinal elementi yarı saydam yap
+    element.style.opacity = '0.3';
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!touchedPlayer) return;
     e.preventDefault();
+    e.stopPropagation();
     
     const touch = e.touches[0];
-    const element = e.currentTarget as HTMLElement;
-    element.style.left = `${touch.clientX - 32}px`;
-    element.style.top = `${touch.clientY - 32}px`;
+    const clone = document.getElementById('drag-clone');
+    
+    if (clone) {
+      clone.style.left = `${touch.clientX - 32}px`;
+      clone.style.top = `${touch.clientY - 32}px`;
+    }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     if (!touchedPlayer) return;
     e.preventDefault();
+    e.stopPropagation();
     
     const touch = e.changedTouches[0];
     const element = e.currentTarget as HTMLElement;
     
-    // Stili sıfırla
-    element.style.position = '';
-    element.style.zIndex = '';
-    element.style.left = '';
-    element.style.top = '';
-    element.style.pointerEvents = '';
+    // Orijinal elementi normale döndür
     element.style.opacity = '';
     
-    // Bırakılan pozisyonu bul
-    const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-    const positionElement = elementBelow?.closest('[data-position-id]');
+    // Klonu kaldır
+    const clone = document.getElementById('drag-clone');
+    if (clone) {
+      clone.remove();
+    }
     
-    if (positionElement) {
-      const targetPositionId = positionElement.getAttribute('data-position-id');
-      if (targetPositionId) {
-        handleMobileDrop(targetPositionId);
+    // Saha alanını bul
+    const fieldElement = document.querySelector('.bg-green-600');
+    if (!fieldElement) {
+      setTouchedPlayer(null);
+      setTouchedFromPosition(null);
+      return;
+    }
+    
+    const fieldRect = fieldElement.getBoundingClientRect();
+    
+    // Touch noktası saha içinde mi kontrol et
+    if (touch.clientX >= fieldRect.left && 
+        touch.clientX <= fieldRect.right && 
+        touch.clientY >= fieldRect.top && 
+        touch.clientY <= fieldRect.bottom) {
+      
+      // En yakın pozisyonu bul
+      const touchRelativeX = ((touch.clientX - fieldRect.left) / fieldRect.width) * 100;
+      const touchRelativeY = ((touch.clientY - fieldRect.top) / fieldRect.height) * 100;
+      
+      let closestPosition: Position | null = null;
+      let closestDistance = Infinity;
+      
+      positions.forEach(pos => {
+        const distance = Math.sqrt(
+          Math.pow(pos.x - touchRelativeX, 2) + 
+          Math.pow(pos.y - touchRelativeY, 2)
+        );
+        
+        if (distance < closestDistance && distance < 20) { // 20% yakınlık eşiği
+          closestDistance = distance;
+          closestPosition = pos;
+        }
+      });
+      
+      if (closestPosition) {
+        handleMobileDrop(closestPosition.id);
       }
     }
     
