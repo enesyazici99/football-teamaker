@@ -611,43 +611,53 @@ export default function TeamFormationPage() {
       dragElement.remove();
     }
     
-    // Saha alanını bul
-    const fieldElement = document.querySelector('.bg-green-600');
-    if (!fieldElement) {
-      setTouchedPlayer(null);
-      setTouchedFromPosition(null);
-      return;
-    }
+    // Touch noktasındaki elementi bul
+    const elementAtPoint = document.elementFromPoint(touch.clientX, touch.clientY);
     
-    const fieldRect = fieldElement.getBoundingClientRect();
-    
-    // Touch noktası saha içinde mi kontrol et
-    if (touch.clientX >= fieldRect.left && 
-        touch.clientX <= fieldRect.right && 
-        touch.clientY >= fieldRect.top && 
-        touch.clientY <= fieldRect.bottom) {
-      
-      // En yakın pozisyonu bul
-      const touchRelativeX = ((touch.clientX - fieldRect.left) / fieldRect.width) * 100;
-      const touchRelativeY = ((touch.clientY - fieldRect.top) / fieldRect.height) * 100;
-      
-      let closestPositionId: string | null = null;
-      let closestDistance = Infinity;
-      
-      positions.forEach(pos => {
-        const distance = Math.sqrt(
-          Math.pow(pos.x - touchRelativeX, 2) + 
-          Math.pow(pos.y - touchRelativeY, 2)
-        );
-        
-        if (distance < closestDistance && distance < 20) { // 20% yakınlık eşiği
-          closestDistance = distance;
-          closestPositionId = pos.id;
+    if (elementAtPoint) {
+      // Hedef pozisyon elementi mi kontrol et
+      const positionElement = elementAtPoint.closest('[data-position-id]');
+      if (positionElement) {
+        const targetPositionId = positionElement.getAttribute('data-position-id');
+        if (targetPositionId) {
+          handleMobileDrop(targetPositionId);
         }
-      });
-      
-      if (closestPositionId) {
-        handleMobileDrop(closestPositionId);
+      } else {
+        // Saha alanını bul ve en yakın pozisyonu hesapla
+        const fieldElement = document.querySelector('.bg-green-600');
+        if (fieldElement) {
+          const fieldRect = fieldElement.getBoundingClientRect();
+          
+          // Touch noktası saha içinde mi kontrol et
+          if (touch.clientX >= fieldRect.left && 
+              touch.clientX <= fieldRect.right && 
+              touch.clientY >= fieldRect.top && 
+              touch.clientY <= fieldRect.bottom) {
+            
+            // En yakın pozisyonu bul
+            const touchRelativeX = ((touch.clientX - fieldRect.left) / fieldRect.width) * 100;
+            const touchRelativeY = ((touch.clientY - fieldRect.top) / fieldRect.height) * 100;
+            
+            let closestPositionId: string | null = null;
+            let closestDistance = Infinity;
+            
+            positions.forEach(pos => {
+              const distance = Math.sqrt(
+                Math.pow(pos.x - touchRelativeX, 2) + 
+                Math.pow(pos.y - touchRelativeY, 2)
+              );
+              
+              if (distance < closestDistance && distance < 15) { // 15% yakınlık eşiği
+                closestDistance = distance;
+                closestPositionId = pos.id;
+              }
+            });
+            
+            if (closestPositionId) {
+              handleMobileDrop(closestPositionId);
+            }
+          }
+        }
       }
     }
     
@@ -960,9 +970,9 @@ export default function TeamFormationPage() {
                           // Sürükleme bittiğinde opacity'yi normale döndür
                           (e.currentTarget as HTMLElement).style.opacity = '';
                         } : undefined}
-                        onTouchStart={isMobile && position.player && isAuthorized && !selectedPlayer ? (e) => handleTouchStart(e, position.player!, position.id) : undefined}
-                        onTouchMove={isMobile && position.player && isAuthorized && !selectedPlayer ? handleTouchMove : undefined}
-                        onTouchEnd={isMobile && position.player && isAuthorized && !selectedPlayer ? handleTouchEnd : undefined}
+                        onTouchStart={isMobile && position.player && isAuthorized ? (e) => handleTouchStart(e, position.player!, position.id) : undefined}
+                        onTouchMove={isMobile && position.player && isAuthorized ? handleTouchMove : undefined}
+                        onTouchEnd={isMobile && position.player && isAuthorized ? handleTouchEnd : undefined}
                         className={`absolute w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all ${
                           position.player
                             ? hoveredPositionId === position.id && isAuthorized
@@ -1060,9 +1070,9 @@ export default function TeamFormationPage() {
                             // Sürükleme bittiğinde opacity'yi normale döndür
                             (e.currentTarget as HTMLElement).style.opacity = '';
                           } : undefined}
-                          onTouchStart={isMobile && isAuthorized && !isPlayerOnField && !selectedPlayer ? (e) => handleTouchStart(e, player) : undefined}
-                          onTouchMove={isMobile && isAuthorized && !isPlayerOnField && !selectedPlayer ? handleTouchMove : undefined}
-                          onTouchEnd={isMobile && isAuthorized && !isPlayerOnField && !selectedPlayer ? handleTouchEnd : undefined}
+                          onTouchStart={undefined}
+                          onTouchMove={undefined}
+                          onTouchEnd={undefined}
                           className={`p-3 rounded-lg transition-colors border-2 ${
                             selectedPlayer?.id === player.id
                               ? 'bg-blue-100 border-blue-500 dark:bg-blue-900 dark:border-blue-400'
