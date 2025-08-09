@@ -441,29 +441,36 @@ export default function TeamFormationPage() {
     
     // Özel drag image oluştur
     const dragImage = document.createElement('div');
-    dragImage.className = 'bg-blue-500 text-white rounded-full w-16 h-16 flex items-center justify-center shadow-lg border-2 border-blue-600';
-    dragImage.style.position = 'absolute';
-    dragImage.style.top = '-100px';
-    dragImage.style.left = '-100px';
-    dragImage.style.opacity = '0.9';
-    dragImage.innerHTML = `
-      <div class="text-center">
-        <div class="text-xs font-bold truncate max-w-12">
-          ${player.full_name.split(' ')[0]}
-        </div>
-      </div>
-    `;
+    dragImage.id = 'custom-drag-image';
+    dragImage.style.position = 'fixed';
+    dragImage.style.width = '64px';
+    dragImage.style.height = '64px';
+    dragImage.style.borderRadius = '50%';
+    dragImage.style.backgroundColor = '#3b82f6';
+    dragImage.style.border = '2px solid #2563eb';
+    dragImage.style.display = 'flex';
+    dragImage.style.alignItems = 'center';
+    dragImage.style.justifyContent = 'center';
+    dragImage.style.color = 'white';
+    dragImage.style.fontSize = '12px';
+    dragImage.style.fontWeight = 'bold';
+    dragImage.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+    dragImage.style.top = '-1000px';
+    dragImage.style.left = '-1000px';
+    dragImage.style.zIndex = '9999';
+    dragImage.innerHTML = player.full_name.split(' ')[0];
     document.body.appendChild(dragImage);
     
     e.dataTransfer.setDragImage(dragImage, 32, 32);
     e.dataTransfer.effectAllowed = 'move';
     
-    // Drag image'ı bir süre sonra kaldır
-    setTimeout(() => {
-      if (dragImage.parentNode) {
-        dragImage.remove();
+    // Drag bittiğinde image'ı kaldır
+    const cleanupDragImage = () => {
+      const existingDragImage = document.getElementById('custom-drag-image');
+      if (existingDragImage) {
+        existingDragImage.remove();
       }
-    }, 0);
+    };
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -500,6 +507,12 @@ export default function TeamFormationPage() {
   const handleDragEnd = () => {
     setDraggedPlayer(null);
     setDraggedFromPosition(null);
+    
+    // Drag image'ı temizle
+    const existingDragImage = document.getElementById('custom-drag-image');
+    if (existingDragImage) {
+      existingDragImage.remove();
+    }
   };
 
   // Mobil touch eventleri
