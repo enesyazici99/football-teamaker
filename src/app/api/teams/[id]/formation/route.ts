@@ -91,9 +91,21 @@ export async function POST(
       return NextResponse.json({ error: 'Takım bulunamadı' }, { status: 404 });
     }
 
-    // Kullanıcının takım sahibi veya kaptan olup olmadığını kontrol et
+    // Kullanıcının takım sahibi, kaptan veya yetkili üye olup olmadığını kontrol et
     const isTeamOwner = team.created_by === decoded.id;
-    const isAuthorized = isTeamOwner || team.captain_id === decoded.id;
+    const isCaptain = team.captain_id === decoded.id;
+    const isInAuthorizedMembers = team.authorized_members?.includes(decoded.id) || false;
+    const isAuthorized = isTeamOwner || isCaptain || isInAuthorizedMembers;
+    
+    console.log('Formasyon kaydetme yetki kontrolü:', {
+      teamId,
+      userId: decoded.id,
+      isTeamOwner,
+      isCaptain,
+      isInAuthorizedMembers,
+      authorizedMembers: team.authorized_members,
+      isAuthorized
+    });
 
     if (!isAuthorized) {
       return NextResponse.json({ error: 'Bu işlem için yetkiniz yok' }, { status: 403 });
