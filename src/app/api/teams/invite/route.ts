@@ -35,18 +35,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Bu işlem için yetkiniz yok' }, { status: 403 });
     }
 
+    // Kullanıcının kendine davet göndermesini engelle
+    if (invited_user_id === decoded.id) {
+      return NextResponse.json({ error: 'Kendinize davet gönderemezsiniz' }, { status: 400 });
+    }
+
     // Davet edilecek kullanıcının var olduğunu kontrol et
     const invitedUser = await userDB.getById(invited_user_id);
     if (!invitedUser) {
       return NextResponse.json({ error: 'Kullanıcı bulunamadı' }, { status: 404 });
     }
 
-    // Zaten davet var mı kontrol et
+    // Aynı takımdan aynı kullanıcıya bekleyen davet var mı kontrol et
     const existingInvitations = await teamInvitationDB.getByUserId(invited_user_id);
-    const alreadyInvited = existingInvitations.some(inv => inv.team_id === team_id && inv.status === 'pending');
+    const alreadyInvited = existingInvitations.some(inv => 
+      inv.team_id === team_id && 
+      inv.status === 'pending'
+    );
     
     if (alreadyInvited) {
-      return NextResponse.json({ error: 'Bu kullanıcı zaten davet edilmiş' }, { status: 400 });
+      return NextResponse.json({ error: 'Bu kullanıcıya zaten bu takımdan bekleyen bir davet bulunuyor' }, { status: 400 });
     }
 
     // Davet oluştur

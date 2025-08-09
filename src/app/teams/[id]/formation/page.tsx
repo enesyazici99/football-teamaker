@@ -251,11 +251,6 @@ export default function TeamFormationPage() {
         // Takım boyutuna göre mevcut formasyonları al
         const formations = getAvailableFormations(teamData.team.team_size);
         setAvailableFormations(formations);
-        
-        // Eğer henüz formasyon seçilmemişse, varsayılan formasyonu seç
-        if (!selectedFormation && formations.length > 0) {
-          setSelectedFormation(formations[0].name);
-        }
       }
 
       if (playersResponse.ok) {
@@ -272,7 +267,6 @@ export default function TeamFormationPage() {
         const formationData = await formationResponse.json();
         console.log('Formasyon verisi:', formationData); // Debug için
         
-        // setFormation(formationData.formation); // Bu satır kaldırıldı
         setSelectedFormation(formationData.formation.name);
         
         // Pozisyonları ayarla
@@ -291,15 +285,15 @@ export default function TeamFormationPage() {
         setPositions(positionsWithPlayers);
       } else {
         // Formasyon yoksa varsayılan pozisyonları ayarla
-        if (team && selectedFormation) {
-          const calculatedPositions = calculatePositions(selectedFormation);
-          setPositions(calculatedPositions);
-        } else if (team && !selectedFormation && availableFormations.length > 0) {
-          // Eğer henüz formasyon seçilmemişse, varsayılan formasyonu kullan
-          const defaultFormation = availableFormations[0].name;
-          setSelectedFormation(defaultFormation);
-          const calculatedPositions = calculatePositions(defaultFormation);
-          setPositions(calculatedPositions);
+        if (teamResponse.ok) {
+          const teamData = await teamResponse.json();
+          const formations = getAvailableFormations(teamData.team.team_size);
+          if (formations.length > 0) {
+            const defaultFormation = formations[0].name;
+            setSelectedFormation(defaultFormation);
+            const calculatedPositions = calculatePositions(defaultFormation);
+            setPositions(calculatedPositions);
+          }
         }
       }
     } catch (error) {
@@ -308,13 +302,29 @@ export default function TeamFormationPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [teamId, selectedFormation, availableFormations, team]);
+  }, [teamId]);
 
   useEffect(() => {
     if (teamId) {
       fetchTeamData();
     }
   }, [teamId, fetchTeamData]);
+
+  // Formasyon değiştiğinde pozisyonları güncelle
+  useEffect(() => {
+    if (selectedFormation && !isLoading) {
+      const newPositions = calculatePositions(selectedFormation);
+      // Mevcut oyuncuları koru
+      const updatedPositions = newPositions.map(newPos => {
+        const existingPos = positions.find(p => p.id === newPos.id);
+        return {
+          ...newPos,
+          player: existingPos?.player
+        };
+      });
+      setPositions(updatedPositions);
+    }
+  }, [selectedFormation]);
 
   const handlePositionClick = (position: Position) => {
     // Yetki kontrolü
@@ -357,7 +367,7 @@ export default function TeamFormationPage() {
     setSelectedPlayer(player);
   };
 
-  const handleFormationChange = async (formationName: string) => {
+  const handleFormationChange = (formationName: string) => {
     // Yetki kontrolü
     if (!isAuthorized) {
       (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
@@ -370,13 +380,6 @@ export default function TeamFormationPage() {
     }
 
     setSelectedFormation(formationName);
-    
-    try {
-      const newPositions = calculatePositions(formationName);
-      setPositions(newPositions);
-    } catch (error) {
-      console.error('Formasyon hesaplama hatası:', error);
-    }
   };
 
   const handleSaveFormation = async () => {
