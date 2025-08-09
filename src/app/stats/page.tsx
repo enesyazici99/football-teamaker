@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 
 interface Player {
   id: number;
@@ -41,52 +43,77 @@ export default function StatsPage() {
     }
   };
 
+  // Chart için sample data oluştur (gerçek veriler gelene kadar)
+  const performanceData = [
+    { month: 'Ocak', ortalamaPuan: 7.2, maçSayısı: 12 },
+    { month: 'Şubat', ortalamaPuan: 7.5, maçSayısı: 15 },
+    { month: 'Mart', ortalamaPuan: 7.8, maçSayısı: 18 },
+    { month: 'Nisan', ortalamaPuan: 8.1, maçSayısı: 22 },
+    { month: 'Mayıs', ortalamaPuan: 8.3, maçSayısı: 20 },
+    { month: 'Haziran', ortalamaPuan: 8.5, maçSayısı: 25 },
+  ];
+
+  // Oyuncu bazlı performans verisi
+  const playerPerformanceData = players.slice(0, 10).map(player => ({
+    name: player.full_name.split(' ')[0],
+    puan: player.average_rating || Math.random() * 3 + 7, // Örnek veri
+    beceri: player.skill_level,
+  }));
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Yükleniyor...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Yükleniyor...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">İstatistikler</h1>
-          <p className="text-lg text-gray-600">
-            Takım ve oyuncu performans istatistiklerini görüntüleyin.
-          </p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground mb-2">İstatistikler</h1>
+            <p className="text-lg text-muted-foreground">
+              Takım ve oyuncu performans istatistiklerini görüntüleyin.
+            </p>
+          </div>
+          <Link
+            href="/settings"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+          >
+            Ayarlar
+          </Link>
         </div>
 
         {/* Genel İstatistikler */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
+          <Card className="card-dark">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
                   <span className="text-2xl text-white">👥</span>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Toplam Oyuncu</p>
-                  <p className="text-2xl font-bold text-gray-900">{players.length}</p>
+                  <p className="text-sm text-muted-foreground">Toplam Oyuncu</p>
+                  <p className="text-2xl font-bold text-foreground">{players.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
+          <Card className="card-dark">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mr-4">
                   <span className="text-2xl text-white">✅</span>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Aktif Oyuncu</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm text-muted-foreground">Aktif Oyuncu</p>
+                  <p className="text-2xl font-bold text-foreground">
                     {players.filter(p => p.is_active).length}
                   </p>
                 </div>
@@ -94,15 +121,15 @@ export default function StatsPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
+          <Card className="card-dark">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mr-4">
                   <span className="text-2xl text-white">⭐</span>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Ortalama Puan</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm text-muted-foreground">Ortalama Puan</p>
+                  <p className="text-2xl font-bold text-foreground">
                     {players.length > 0 
                       ? (players.reduce((sum, p) => sum + (p.average_rating || 0), 0) / players.length).toFixed(1)
                       : '0.0'
@@ -113,15 +140,15 @@ export default function StatsPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
+          <Card className="card-dark">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center mr-4">
                   <span className="text-2xl text-white">⚽</span>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Toplam Maç</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm text-muted-foreground">Toplam Maç</p>
+                  <p className="text-2xl font-bold text-foreground">
                     {players.reduce((sum, p) => sum + (p.total_matches || 0), 0)}
                   </p>
                 </div>
@@ -131,9 +158,9 @@ export default function StatsPage() {
         </div>
 
         {/* Oyuncu İstatistikleri */}
-        <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
+        <Card className="card-dark mb-8">
           <CardHeader>
-            <CardTitle className="text-xl font-semibold text-gray-900">
+            <CardTitle className="text-xl font-semibold text-foreground">
               Oyuncu Performans İstatistikleri
             </CardTitle>
             <CardDescription>
@@ -144,26 +171,26 @@ export default function StatsPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">Oyuncu</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">Mevkiler</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">Beceri</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">Ortalama Puan</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">Maç Sayısı</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-900">Durum</th>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-3 px-4 font-medium text-foreground">Oyuncu</th>
+                    <th className="text-left py-3 px-4 font-medium text-foreground">Mevkiler</th>
+                    <th className="text-left py-3 px-4 font-medium text-foreground">Beceri</th>
+                    <th className="text-left py-3 px-4 font-medium text-foreground">Ortalama Puan</th>
+                    <th className="text-left py-3 px-4 font-medium text-foreground">Maç Sayısı</th>
+                    <th className="text-left py-3 px-4 font-medium text-foreground">Durum</th>
                   </tr>
                 </thead>
                 <tbody>
                   {players.map((player) => (
-                    <tr key={player.id} className="border-b border-gray-100 hover:bg-gray-50">
+                    <tr key={player.id} className="border-b border-border hover:bg-muted/50">
                       <td className="py-3 px-4">
                         <div>
-                          <p className="font-medium text-gray-900">{player.full_name}</p>
-                          <p className="text-sm text-gray-600">@{player.username}</p>
+                          <p className="font-medium text-foreground">{player.full_name}</p>
+                          <p className="text-sm text-muted-foreground">@{player.username}</p>
                         </div>
                       </td>
                       <td className="py-3 px-4">
-                        <span className="text-sm text-gray-700">
+                        <span className="text-sm text-foreground">
                           {player.positions && player.positions.length > 0 
                             ? player.positions.join(', ') 
                             : 'Belirtilmemiş'
@@ -171,23 +198,25 @@ export default function StatsPage() {
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className="text-sm font-medium text-foreground">
                           {player.skill_level}/10
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className="text-sm font-medium text-foreground">
                           {(player.average_rating || 0).toFixed(1)}/10
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className="text-sm text-gray-700">
+                        <span className="text-sm text-foreground">
                           {player.total_matches || 0}
                         </span>
                       </td>
                       <td className="py-3 px-4">
                         <span className={`px-2 py-1 rounded-full text-xs ${
-                          player.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          player.is_active 
+                            ? 'bg-green-500/20 text-green-600 dark:text-green-400' 
+                            : 'bg-red-500/20 text-red-600 dark:text-red-400'
                         }`}>
                           {player.is_active ? 'Aktif' : 'Pasif'}
                         </span>
@@ -199,7 +228,108 @@ export default function StatsPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Performans Grafikleri */}
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Zaman Bazlı Performans Grafiği */}
+          <Card className="card-dark">
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold text-foreground">
+                Aylık Performans Trendi
+              </CardTitle>
+              <CardDescription>
+                Takımın aylık ortalama performans puanı
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={performanceData}>
+                  <defs>
+                    <linearGradient id="colorPuan" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis 
+                    dataKey="month" 
+                    className="text-xs"
+                    tick={{ fill: 'currentColor' }}
+                  />
+                  <YAxis 
+                    className="text-xs"
+                    tick={{ fill: 'currentColor' }}
+                    domain={[0, 10]}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                    labelStyle={{ color: 'hsl(var(--foreground))' }}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="ortalamaPuan" 
+                    stroke="#3b82f6" 
+                    fillOpacity={1} 
+                    fill="url(#colorPuan)"
+                    strokeWidth={2}
+                    name="Ortalama Puan"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Oyuncu Bazlı Performans Karşılaştırma */}
+          <Card className="card-dark">
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold text-foreground">
+                Oyuncu Performans Karşılaştırması
+              </CardTitle>
+              <CardDescription>
+                En iyi 10 oyuncunun puan ortalamaları
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={playerPerformanceData}>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis 
+                    dataKey="name" 
+                    className="text-xs"
+                    tick={{ fill: 'currentColor' }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                  />
+                  <YAxis 
+                    className="text-xs"
+                    tick={{ fill: 'currentColor' }}
+                    domain={[0, 10]}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px'
+                    }}
+                    labelStyle={{ color: 'hsl(var(--foreground))' }}
+                  />
+                  <Bar 
+                    dataKey="puan" 
+                    fill="#10b981" 
+                    name="Ortalama Puan"
+                    radius={[8, 8, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
-} 
+}

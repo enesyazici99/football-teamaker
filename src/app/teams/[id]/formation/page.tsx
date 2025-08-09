@@ -542,7 +542,7 @@ export default function TeamFormationPage() {
                       <Button
                         key={formation.name}
                         variant={selectedFormation === formation.name ? "default" : "outline"}
-                        onClick={() => isAuthorized ? handleFormationChange(formation.name) : null}
+                        onClick={() => handleFormationChange(formation.name)}
                         disabled={!isAuthorized}
                         className="text-sm"
                       >
@@ -607,12 +607,12 @@ export default function TeamFormationPage() {
                     {positions.map((position) => (
                       <div
                         key={position.id}
-                        onClick={() => isAuthorized ? handlePositionClick(position) : null}
-                        className={`absolute w-16 h-16 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all ${
+                        onClick={() => handlePositionClick(position)}
+                        className={`absolute w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all ${
                           position.player
                             ? 'bg-blue-500 border-blue-600 text-white shadow-lg'
                             : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                        } ${isAuthorized ? 'hover:scale-105' : 'cursor-not-allowed opacity-75'}`}
+                        } ${isAuthorized ? 'cursor-pointer hover:scale-105' : 'cursor-not-allowed opacity-75'}`}
                         style={{
                           left: `${position.x}%`,
                           top: `${position.y}%`,
@@ -657,35 +657,51 @@ export default function TeamFormationPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {players.map((player) => (
-                      <div
-                        key={player.id}
-                        onClick={() => isAuthorized ? handlePlayerSelect(player) : null}
-                        className={`p-3 rounded-lg transition-colors ${
-                          selectedPlayer?.id === player.id
-                            ? 'bg-blue-100 border-2 border-blue-500 dark:bg-blue-900 dark:border-blue-400'
-                            : 'bg-muted/50 hover:bg-muted'
-                        } ${isAuthorized ? 'cursor-pointer' : 'cursor-not-allowed opacity-75'}`}
-                      >
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <p className="font-medium text-foreground">{player.full_name}</p>
-                            <Badge variant="outline" className="text-xs">
-                              @{player.username}
+                    {players.map((player) => {
+                      // Oyuncunun sahada olup olmadığını kontrol et
+                      const isPlayerOnField = positions.some(pos => pos.player?.id === player.id);
+                      
+                      return (
+                        <div
+                          key={player.id}
+                          onClick={() => handlePlayerSelect(player)}
+                          className={`p-3 rounded-lg transition-colors border-2 ${
+                            selectedPlayer?.id === player.id
+                              ? 'bg-blue-100 border-blue-500 dark:bg-blue-900 dark:border-blue-400'
+                              : isPlayerOnField
+                                ? 'bg-green-50 border-green-300 dark:bg-green-900/20 dark:border-green-700'
+                                : 'bg-muted/50 border-transparent hover:bg-muted'
+                          } ${isAuthorized ? 'cursor-pointer' : 'cursor-not-allowed opacity-75'}`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-foreground">{player.full_name}</p>
+                                {isPlayerOnField && (
+                                  <Badge variant="default" className="text-xs bg-green-600 hover:bg-green-700">
+                                    Sahada
+                                  </Badge>
+                                )}
+                              </div>
+                              <Badge variant="outline" className="text-xs">
+                                @{player.username}
+                              </Badge>
+                              {isPlayerOnField && (
+                                <p className="text-xs text-green-600 font-medium dark:text-green-400 mt-1">
+                                  Pozisyon: {positions.find(pos => pos.player?.id === player.id)?.name}
+                                </p>
+                              )}
+                              {player.positions && player.positions.length > 0 && (
+                                <p className="text-xs text-muted-foreground">Tercih: {player.positions.join(', ')}</p>
+                              )}
+                            </div>
+                            <Badge variant="secondary" className="text-xs">
+                              {player.skill_level}/10
                             </Badge>
-                            {player.position && (
-                              <p className="text-xs text-blue-600 font-medium dark:text-blue-400">Atanan: {player.position}</p>
-                            )}
-                            {player.positions && player.positions.length > 0 && (
-                              <p className="text-xs text-muted-foreground">Tercih: {player.positions.join(', ')}</p>
-                            )}
                           </div>
-                          <Badge variant="secondary" className="text-xs">
-                            {player.skill_level}/10
-                          </Badge>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>

@@ -1,14 +1,20 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import Navbar from '@/components/navbar';
-import ConfirmModal from '@/components/ConfirmModal';
-import TeamNavigation from '@/components/TeamNavigation';
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import Navbar from "@/components/navbar";
+import ConfirmModal from "@/components/ConfirmModal";
+import TeamNavigation from "@/components/TeamNavigation";
 
 interface Team {
   id: number;
@@ -31,21 +37,21 @@ export default function TeamSettingsPage() {
   const [team, setTeam] = useState<Team | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
   // Team info editing states
   const [isEditingInfo, setIsEditingInfo] = useState(false);
-  const [teamName, setTeamName] = useState('');
+  const [teamName, setTeamName] = useState("");
   const [isUpdatingInfo, setIsUpdatingInfo] = useState(false);
-  
+
   // Team size states
   const [isUpdatingSize, setIsUpdatingSize] = useState(false);
   const [selectedSize, setSelectedSize] = useState<number>(11);
-  
+
   // Team deletion states
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteConfirmName, setDeleteConfirmName] = useState('');
+  const [deleteConfirmName, setDeleteConfirmName] = useState("");
   const [isDeletingTeam, setIsDeletingTeam] = useState(false);
 
   const router = useRouter();
@@ -55,8 +61,8 @@ export default function TeamSettingsPage() {
   const fetchTeamData = useCallback(async () => {
     try {
       const [teamResponse, userResponse] = await Promise.all([
-        fetch(`/api/teams/${teamId}`, { credentials: 'include' }),
-        fetch('/api/auth/me', { credentials: 'include' })
+        fetch(`/api/teams/${teamId}`, { credentials: "include" }),
+        fetch("/api/auth/me", { credentials: "include" }),
       ]);
 
       if (teamResponse.ok) {
@@ -71,7 +77,7 @@ export default function TeamSettingsPage() {
         setCurrentUser(userData.user);
       }
     } catch {
-      setError('Takım bilgileri yüklenemedi');
+      setError("Takım bilgileri yüklenemedi");
     } finally {
       setIsLoading(false);
     }
@@ -85,44 +91,56 @@ export default function TeamSettingsPage() {
 
   // Yetki kontrolü
   const isTeamOwner = team?.created_by === currentUser?.id;
-  const isAuthorized = isTeamOwner || team?.captain_id === currentUser?.id || (team?.authorized_members || []).includes(currentUser?.id || 0);
+  const isAuthorized =
+    isTeamOwner ||
+    team?.captain_id === currentUser?.id ||
+    (team?.authorized_members || []).includes(currentUser?.id || 0);
 
   const handleUpdateTeamInfo = async () => {
     if (!teamName.trim()) {
-      setError('Takım adı boş olamaz');
+      setError("Takım adı boş olamaz");
       return;
     }
 
     setIsUpdatingInfo(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
       const response = await fetch(`/api/teams/${teamId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify({ name: teamName.trim() }),
       });
 
       if (response.ok) {
-        (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
-          type: 'success',
-          title: 'Başarılı!',
-          message: 'Takım bilgileri güncellendi',
-          duration: 3000
+        (
+          window as {
+            showToast?: (toast: {
+              type: string;
+              title: string;
+              message: string;
+              duration: number;
+            }) => void;
+          }
+        ).showToast?.({
+          type: "success",
+          title: "Başarılı!",
+          message: "Takım bilgileri güncellendi",
+          duration: 3000,
         });
         await fetchTeamData();
         setIsEditingInfo(false);
-        setSuccess('Takım bilgileri başarıyla güncellendi');
+        setSuccess("Takım bilgileri başarıyla güncellendi");
       } else {
         const data = await response.json();
-        setError(data.error || 'Takım bilgileri güncellenemedi');
+        setError(data.error || "Takım bilgileri güncellenemedi");
       }
     } catch {
-      setError('Takım bilgileri güncellenemedi');
+      setError("Takım bilgileri güncellenemedi");
     } finally {
       setIsUpdatingInfo(false);
     }
@@ -130,33 +148,42 @@ export default function TeamSettingsPage() {
 
   const handleUpdateTeamSize = async (newSize: number) => {
     setIsUpdatingSize(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
       const response = await fetch(`/api/teams/${teamId}/team-size`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
-        body: JSON.stringify({ team_size: newSize })
+        credentials: "include",
+        body: JSON.stringify({ team_size: newSize }),
       });
 
       if (response.ok) {
-        (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
-          type: 'success',
-          title: 'Başarılı!',
-          message: 'Takım boyutu güncellendi',
-          duration: 3000
+        (
+          window as {
+            showToast?: (toast: {
+              type: string;
+              title: string;
+              message: string;
+              duration: number;
+            }) => void;
+          }
+        ).showToast?.({
+          type: "success",
+          title: "Başarılı!",
+          message: "Takım boyutu güncellendi",
+          duration: 3000,
         });
         await fetchTeamData();
-        setSuccess('Takım boyutu başarıyla güncellendi');
+        setSuccess("Takım boyutu başarıyla güncellendi");
       } else {
-        setError('Takım boyutu güncellenemedi');
+        setError("Takım boyutu güncellenemedi");
       }
     } catch {
-      setError('Takım boyutu güncellenemedi');
+      setError("Takım boyutu güncellenemedi");
     } finally {
       setIsUpdatingSize(false);
     }
@@ -171,39 +198,48 @@ export default function TeamSettingsPage() {
 
     try {
       const response = await fetch(`/api/teams/${teamId}`, {
-        method: 'DELETE',
-        credentials: 'include',
+        method: "DELETE",
+        credentials: "include",
       });
 
       if (response.ok) {
-        (window as { showToast?: (toast: { type: string; title: string; message: string; duration: number }) => void }).showToast?.({
-          type: 'success',
-          title: 'Başarılı!',
-          message: 'Takım silindi',
-          duration: 3000
+        (
+          window as {
+            showToast?: (toast: {
+              type: string;
+              title: string;
+              message: string;
+              duration: number;
+            }) => void;
+          }
+        ).showToast?.({
+          type: "success",
+          title: "Başarılı!",
+          message: "Takım silindi",
+          duration: 3000,
         });
-        router.push('/dashboard');
+        router.push("/dashboard");
       } else {
         const data = await response.json();
-        setError(data.error || 'Takım silinemedi');
+        setError(data.error || "Takım silinemedi");
       }
     } catch {
-      setError('Takım silinemedi');
+      setError("Takım silinemedi");
     } finally {
       setIsDeletingTeam(false);
       setShowDeleteModal(false);
-      setDeleteConfirmName('');
+      setDeleteConfirmName("");
     }
   };
 
   const teamSizeOptions = [
-    { value: 5, label: '5v5 (Futsal)' },
-    { value: 6, label: '6v6' },
-    { value: 7, label: '7v7' },
-    { value: 8, label: '8v8' },
-    { value: 9, label: '9v9' },
-    { value: 10, label: '10v10' },
-    { value: 11, label: '11v11 (Futbol)' }
+    { value: 5, label: "5v5" },
+    { value: 6, label: "6v6" },
+    { value: 7, label: "7v7" },
+    { value: 8, label: "8v8" },
+    { value: 9, label: "9v9" },
+    { value: 10, label: "10v10" },
+    { value: 11, label: "11v11" },
   ];
 
   if (isLoading) {
@@ -253,13 +289,15 @@ export default function TeamSettingsPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar teamId={teamId} teamName={team?.name} />
-      
+
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-2">
-              <h1 className="text-3xl font-bold text-foreground">Takım Ayarları</h1>
+              <h1 className="text-3xl font-bold text-foreground">
+                Takım Ayarları
+              </h1>
               <Badge variant="outline">{team?.name}</Badge>
             </div>
             <p className="text-muted-foreground">
@@ -331,14 +369,14 @@ export default function TeamSettingsPage() {
                         disabled={isUpdatingInfo || !teamName.trim()}
                         className="flex-1"
                       >
-                        {isUpdatingInfo ? 'Güncelleniyor...' : 'Kaydet'}
+                        {isUpdatingInfo ? "Güncelleniyor..." : "Kaydet"}
                       </Button>
                       <Button
                         variant="outline"
                         onClick={() => {
                           setIsEditingInfo(false);
-                          setTeamName(team?.name || '');
-                          setError('');
+                          setTeamName(team?.name || "");
+                          setError("");
                         }}
                         className="flex-1"
                       >
@@ -359,7 +397,11 @@ export default function TeamSettingsPage() {
                         Oluşturulma Tarihi
                       </label>
                       <p className="text-sm">
-                        {team?.created_at ? new Date(team.created_at).toLocaleDateString('tr-TR') : '-'}
+                        {team?.created_at
+                          ? new Date(team.created_at).toLocaleDateString(
+                              "tr-TR"
+                            )
+                          : "-"}
                       </p>
                     </div>
                   </div>
@@ -379,13 +421,20 @@ export default function TeamSettingsPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-3">
-                      Mevcut Boyut: <span className="font-bold">{team?.team_size}v{team?.team_size}</span>
+                      Mevcut Boyut:{" "}
+                      <span className="font-bold">
+                        {team?.team_size}v{team?.team_size}
+                      </span>
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                       {teamSizeOptions.map((option) => (
                         <Button
                           key={option.value}
-                          variant={selectedSize === option.value ? "default" : "outline"}
+                          variant={
+                            selectedSize === option.value
+                              ? "default"
+                              : "outline"
+                          }
                           size="sm"
                           onClick={() => setSelectedSize(option.value)}
                           className="text-xs"
@@ -401,7 +450,9 @@ export default function TeamSettingsPage() {
                       disabled={isUpdatingSize}
                       className="w-full"
                     >
-                      {isUpdatingSize ? 'Güncelleniyor...' : `${selectedSize}v${selectedSize} Olarak Güncelle`}
+                      {isUpdatingSize
+                        ? "Güncelleniyor..."
+                        : `${selectedSize}v${selectedSize} Olarak Güncelle`}
                     </Button>
                   )}
                 </div>
@@ -412,7 +463,9 @@ export default function TeamSettingsPage() {
             {isTeamOwner && (
               <Card className="border-destructive/50">
                 <CardHeader>
-                  <CardTitle className="text-destructive">Tehlikeli Bölge</CardTitle>
+                  <CardTitle className="text-destructive">
+                    Tehlikeli Bölge
+                  </CardTitle>
                   <CardDescription>
                     Bu işlemler geri alınamaz. Dikkatli olun.
                   </CardDescription>
@@ -420,9 +473,12 @@ export default function TeamSettingsPage() {
                 <CardContent>
                   <div className="space-y-4">
                     <div className="p-4 border border-destructive/50 rounded-lg bg-destructive/10">
-                      <h4 className="font-medium text-destructive mb-2">Takımı Sil</h4>
+                      <h4 className="font-medium text-destructive mb-2">
+                        Takımı Sil
+                      </h4>
                       <p className="text-sm text-muted-foreground mb-4">
-                        Bu takımı kalıcı olarak sileceksiniz. Tüm veriler (oyuncular, maçlar, istatistikler) silinecek.
+                        Bu takımı kalıcı olarak sileceksiniz. Tüm veriler
+                        (oyuncular, maçlar, istatistikler) silinecek.
                       </p>
                       <Button
                         variant="destructive"
@@ -455,8 +511,8 @@ export default function TeamSettingsPage() {
         isOpen={showDeleteModal}
         onClose={() => {
           setShowDeleteModal(false);
-          setDeleteConfirmName('');
-          setError('');
+          setDeleteConfirmName("");
+          setError("");
         }}
         onConfirm={handleDeleteTeam}
         title="Takımı Sil"
@@ -465,7 +521,7 @@ export default function TeamSettingsPage() {
         confirmVariant="destructive"
         isLoading={isDeletingTeam}
         requireTextConfirmation={true}
-        confirmationText={team?.name || ''}
+        confirmationText={team?.name || ""}
         inputValue={deleteConfirmName}
         onInputChange={setDeleteConfirmName}
         inputPlaceholder="Takım adını buraya yazın..."
