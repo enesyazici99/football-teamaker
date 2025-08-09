@@ -35,7 +35,9 @@ export async function PUT(
     }
 
     const isTeamOwner = team.created_by === decoded.id;
-    const isAuthorized = isTeamOwner || team.captain_id === decoded.id;
+    const isCaptain = team.captain_id === decoded.id;
+    const isInAuthorizedMembers = team.authorized_members?.includes(decoded.id) || false;
+    const isAuthorized = isTeamOwner || isCaptain || isInAuthorizedMembers;
 
     if (!isAuthorized) {
       return NextResponse.json({ error: 'Bu işlem için yetkiniz yok' }, { status: 403 });
