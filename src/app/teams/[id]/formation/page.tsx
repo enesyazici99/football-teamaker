@@ -463,14 +463,6 @@ export default function TeamFormationPage() {
     
     e.dataTransfer.setDragImage(dragImage, 32, 32);
     e.dataTransfer.effectAllowed = 'move';
-    
-    // Drag bittiğinde image'ı kaldır
-    const cleanupDragImage = () => {
-      const existingDragImage = document.getElementById('custom-drag-image');
-      if (existingDragImage) {
-        existingDragImage.remove();
-      }
-    };
   };
 
   const handleDragOver = (e: React.DragEvent) => {
