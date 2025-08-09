@@ -14,8 +14,8 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Convert notifications to log format
-    const logs = notifications.map((notification: any) => {
-      const user = users.find((u: any) => u.id === notification.user_id);
+    const logs = notifications.map((notification: { id: number; user_id: number; type: string; message: string; created_at: string; }) => {
+      const user = users.find((u: { id: number; full_name?: string; username: string; }) => u.id === notification.user_id);
       
       // Map notification types to log levels and actions
       let level = 'info';
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Sort by timestamp (newest first)
-    const sortedLogs = logs.sort((a: any, b: any) => 
+    const sortedLogs = logs.sort((a: { timestamp: string }, b: { timestamp: string }) => 
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     );
 
