@@ -431,14 +431,6 @@ export default function ProfilePage() {
                     {new Date(user.created_at).toLocaleDateString('tr-TR')}
                   </Badge>
                 </div>
-                <div>
-                  <Badge variant="outline" className="text-sm">
-                    Kullanıcı ID:
-                  </Badge>
-                  <Badge variant="secondary" className="text-sm ml-2">
-                    {user.id}
-                  </Badge>
-                </div>
               </div>
             </CardContent>
           </Card>

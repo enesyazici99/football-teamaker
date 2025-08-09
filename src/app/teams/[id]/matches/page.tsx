@@ -172,13 +172,10 @@ export default function TeamMatchesPage() {
 
   const formatMatchTime = (dateString: string) => {
     const date = new Date(dateString);
-    // Timezone offset'ini düzelt
-    const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-    return localDate.toLocaleTimeString('tr-TR', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: false 
-    });
+    // Saat ve dakikayı al
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
   };
 
   const handleMatchClick = (matchId: number) => {
