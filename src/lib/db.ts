@@ -654,7 +654,7 @@ export const teamDB = {
     return authorizedMembers.includes(userId);
   },
 
-  update: async (teamId: number, teamData: Partial<{ name: string; description: string; team_size: number }>) => {
+  update: async (teamId: number, teamData: Partial<{ name: string; description: string; team_size: number; captain_id: number | null }>) => {
     // Her alan için ayrı ayrı kontrol edip güncelleme yapalım
     if (teamData.name !== undefined) {
       await sql`UPDATE teams SET name = ${teamData.name}, updated_at = CURRENT_TIMESTAMP WHERE id = ${teamId}`;
@@ -664,6 +664,9 @@ export const teamDB = {
     }
     if (teamData.team_size !== undefined) {
       await sql`UPDATE teams SET team_size = ${teamData.team_size}, updated_at = CURRENT_TIMESTAMP WHERE id = ${teamId}`;
+    }
+    if (teamData.captain_id !== undefined) {
+      await sql`UPDATE teams SET captain_id = ${teamData.captain_id}, updated_at = CURRENT_TIMESTAMP WHERE id = ${teamId}`;
     }
     
     return await teamDB.getById(teamId);
@@ -789,6 +792,35 @@ export const playerDB = {
       UPDATE players 
       SET is_active = false, updated_at = CURRENT_TIMESTAMP
       WHERE user_id = ${userId} AND team_id = ${teamId}
+      RETURNING *
+    `;
+    return result[0] || null;
+  },
+  
+  update: async (id: number, updates: { is_active?: boolean; position?: string; skill_level?: number }) => {
+    const setClause = [];
+    
+    if (updates.is_active !== undefined) {
+      setClause.push(`is_active = ${updates.is_active}`);
+    }
+    if (updates.position !== undefined) {
+      setClause.push(`position = ${updates.position}`);
+    }
+    if (updates.skill_level !== undefined) {
+      setClause.push(`skill_level = ${updates.skill_level}`);
+    }
+    
+    if (setClause.length === 0) {
+      return null;
+    }
+    
+    const result = await sql`
+      UPDATE players 
+      SET is_active = ${updates.is_active !== undefined ? updates.is_active : sql`is_active`},
+          position = ${updates.position !== undefined ? updates.position : sql`position`},
+          skill_level = ${updates.skill_level !== undefined ? updates.skill_level : sql`skill_level`},
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ${id}
       RETURNING *
     `;
     return result[0] || null;
@@ -1265,13 +1297,15 @@ export const playerRatingDB = {
     return await sql`
       SELECT 
         pr.*,
-        rated.full_name as rated_player_name,
-        rated.username as rated_player_username,
-        rater.full_name as rater_player_name,
-        rater.username as rater_player_username
+        rated_u.full_name as rated_player_name,
+        rated_u.username as rated_player_username,
+        rater_u.full_name as rater_player_name,
+        rater_u.username as rater_player_username
       FROM player_ratings pr
       JOIN players rated ON pr.rated_player_id = rated.id
+      JOIN users rated_u ON rated.user_id = rated_u.id
       JOIN players rater ON pr.rater_player_id = rater.id
+      JOIN users rater_u ON rater.user_id = rater_u.id
       WHERE pr.match_id = ${matchId}
       ORDER BY pr.created_at DESC
     `;
@@ -1282,13 +1316,15 @@ export const playerRatingDB = {
     return await sql`
       SELECT 
         pr.*,
-        rated.full_name as rated_player_name,
-        rated.username as rated_player_username,
-        rater.full_name as rater_player_name,
-        rater.username as rater_player_username
+        rated_u.full_name as rated_player_name,
+        rated_u.username as rated_player_username,
+        rater_u.full_name as rater_player_name,
+        rater_u.username as rater_player_username
       FROM player_ratings pr
       JOIN players rated ON pr.rated_player_id = rated.id
+      JOIN users rated_u ON rated.user_id = rated_u.id
       JOIN players rater ON pr.rater_player_id = rater.id
+      JOIN users rater_u ON rater.user_id = rater_u.id
       WHERE pr.rated_player_id = ${playerId} AND pr.match_id = ${matchId}
       ORDER BY pr.created_at DESC
     `;
@@ -1333,8 +1369,7 @@ export const playerRatingDB = {
       ON CONFLICT (match_id, rated_player_id, rater_player_id)
       DO UPDATE SET 
         rating = EXCLUDED.rating,
-        notes = EXCLUDED.notes,
-        updated_at = CURRENT_TIMESTAMP
+        notes = EXCLUDED.notes
       RETURNING *
     `;
   },

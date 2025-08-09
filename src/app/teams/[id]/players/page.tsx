@@ -5,8 +5,10 @@ import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Trash2 } from 'lucide-react';
 import SetCaptainModal from '@/components/SetCaptainModal';
 import AuthorizedMemberModal from '@/components/AuthorizedMemberModal';
+import ConfirmModal from '@/components/ConfirmModal';
 import Navbar from '@/components/navbar';
 import TeamNavigation from '@/components/TeamNavigation';
 
@@ -48,9 +50,23 @@ export default function TeamPlayersPage() {
   const [error, setError] = useState('');
   const [showSetCaptainModal, setShowSetCaptainModal] = useState(false);
   const [showAuthorizedMemberModal, setShowAuthorizedMemberModal] = useState(false);
+  const [showRemovePlayerModal, setShowRemovePlayerModal] = useState(false);
+  const [playerToRemove, setPlayerToRemove] = useState<Player | null>(null);
   const router = useRouter();
   const params = useParams();
   const teamId = params.id as string;
+
+  const fetchPlayers = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/teams/${teamId}/players`, { credentials: 'include' });
+      if (response.ok) {
+        const data = await response.json();
+        setPlayers(data.players);
+      }
+    } catch (error) {
+      console.error('Oyuncular yüklenemedi:', error);
+    }
+  }, [teamId]);
 
   const fetchTeamData = useCallback(async () => {
     try {
@@ -143,6 +159,65 @@ export default function TeamPlayersPage() {
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+    }
+  };
+
+  const handleRemovePlayer = (player: Player) => {
+    // Takım sahibi kendini çıkaramaz
+    if (player.user_id === currentUser?.id) {
+      (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
+        type: 'error',
+        title: 'Hata',
+        message: 'Kendinizi takımdan çıkaramazsınız',
+        duration: 4000
+      });
+      return;
+    }
+    setPlayerToRemove(player);
+    setShowRemovePlayerModal(true);
+  };
+
+  const confirmRemovePlayer = async () => {
+    if (!playerToRemove) return;
+
+    try {
+      const response = await fetch(`/api/teams/${teamId}/remove-player`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ playerId: playerToRemove.id }),
+      });
+
+      if (response.ok) {
+        (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
+          type: 'success',
+          title: 'Başarılı',
+          message: 'Oyuncu takımdan çıkarıldı',
+          duration: 3000
+        });
+        // Oyuncu listesini yenile
+        fetchPlayers();
+      } else {
+        const data = await response.json();
+        (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
+          type: 'error',
+          title: 'Hata',
+          message: data.error || 'Oyuncu çıkarılamadı',
+          duration: 4000
+        });
+      }
+    } catch {
+      (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
+        type: 'error',
+        title: 'Hata',
+        message: 'Oyuncu çıkarılamadı',
+        duration: 4000
+      });
+    } finally {
+      setShowRemovePlayerModal(false);
+      setPlayerToRemove(null);
     }
   };
 
@@ -370,6 +445,19 @@ export default function TeamPlayersPage() {
                           {new Date(player.created_at).toLocaleDateString('tr-TR')}
                         </Badge>
                       </div>
+                      {isTeamOwner && player.user_id !== currentUser?.id && (
+                        <div className="pt-2 border-t border-border">
+                          <Button
+                            onClick={() => handleRemovePlayer(player)}
+                            variant="destructive"
+                            size="sm"
+                            className="w-full"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Takımdan Çıkar
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -418,6 +506,17 @@ export default function TeamPlayersPage() {
           currentAuthorizedMembers={team.authorized_members || []}
         />
       )}
+      
+      <ConfirmModal
+        isOpen={showRemovePlayerModal}
+        onClose={() => setShowRemovePlayerModal(false)}
+        onConfirm={confirmRemovePlayer}
+        title="Oyuncu Çıkarma"
+        message={`${playerToRemove?.full_name} adlı oyuncuyu takımdan çıkarmak istediğinizden emin misiniz? Bu işlem geri alınamaz.`}
+        type="danger"
+        confirmText="Çıkar"
+        cancelText="İptal"
+      />
     </div>
   );
 } 
