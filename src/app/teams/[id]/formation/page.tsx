@@ -226,7 +226,7 @@ export default function TeamFormationPage() {
   const [positions, setPositions] = useState<Position[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [selectedFormation, setSelectedFormation] = useState<string>('');
-  const [availableFormations, setAvailableFormations] = useState<FormationOption[]>([]);
+  const [_availableFormations, setAvailableFormations] = useState<FormationOption[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -315,16 +315,17 @@ export default function TeamFormationPage() {
     if (selectedFormation && !isLoading) {
       const newPositions = calculatePositions(selectedFormation);
       // Mevcut oyuncuları koru
-      const updatedPositions = newPositions.map(newPos => {
-        const existingPos = positions.find(p => p.id === newPos.id);
-        return {
-          ...newPos,
-          player: existingPos?.player
-        };
+      setPositions(prevPositions => {
+        return newPositions.map(newPos => {
+          const existingPos = prevPositions.find(p => p.id === newPos.id);
+          return {
+            ...newPos,
+            player: existingPos?.player
+          };
+        });
       });
-      setPositions(updatedPositions);
     }
-  }, [selectedFormation]);
+  }, [selectedFormation, isLoading]);
 
   const handlePositionClick = (position: Position) => {
     // Yetki kontrolü
