@@ -11,7 +11,6 @@ import {
   Calendar, 
   Shield, 
   Activity, 
-  FileText,
   LogOut,
   BarChart3,
   Trash2
@@ -23,7 +22,6 @@ interface DashboardStats {
   totalMatches: number;
   activeUsers: number;
   todayMatches: number;
-  totalLogs: number;
 }
 
 export default function AdminDashboard() {
@@ -110,14 +108,6 @@ export default function AdminDashboard() {
       color: 'text-red-600',
       bgColor: 'bg-red-100 dark:bg-red-900/20',
       description: 'Bugün planlanan maçlar'
-    },
-    {
-      title: 'Sistem Logları',
-      value: stats?.totalLogs || 0,
-      icon: FileText,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-100 dark:bg-indigo-900/20',
-      description: 'Toplam log kayıtları'
     }
   ];
 
@@ -145,14 +135,6 @@ export default function AdminDashboard() {
       color: 'text-purple-600',
       bgColor: 'bg-purple-50 dark:bg-purple-900/10',
       action: () => router.push('/admin/matches')
-    },
-    {
-      title: 'Sistem Logları',
-      description: 'Sistem aktivitelerini ve logları görüntüle',
-      icon: FileText,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50 dark:bg-indigo-900/10',
-      action: () => router.push('/admin/logs')
     }
   ];
 
@@ -220,7 +202,7 @@ export default function AdminDashboard() {
         {/* Quick Actions */}
         <div className="mb-8">
           <h3 className="text-xl font-semibold text-white mb-6">Hızlı İşlemler</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {adminActions.map((action, index) => (
               <Card
                 key={index}

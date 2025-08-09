@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/adminAuth';
-import { userDB, teamDB, matchDB, notificationDB, playerDB } from '@/lib/db';
+import { userDB, teamDB, matchDB, playerDB } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,11 +8,10 @@ export async function GET(request: NextRequest) {
     requireAdmin(request);
 
     // Get all stats in parallel
-    const [users, teams, matches, notifications, players] = await Promise.all([
+    const [users, teams, matches, players] = await Promise.all([
       userDB.getAll(),
       teamDB.getAll(),
       matchDB.getAll(),
-      notificationDB.getAll(),
       playerDB.getAll()
     ]);
 
@@ -41,16 +40,12 @@ export async function GET(request: NextRequest) {
       return matchDate >= todayStart && matchDate < todayEnd;
     }).length;
 
-    // Total notifications/logs count
-    const totalLogs = notifications.length;
-
     const stats = {
       totalUsers,
       totalTeams,
       totalMatches,
       activeUsers,
-      todayMatches,
-      totalLogs
+      todayMatches
     };
 
     return NextResponse.json({ stats });
