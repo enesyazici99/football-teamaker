@@ -328,8 +328,10 @@ export default function TeamFormationPage() {
   }, [selectedFormation, isLoading]);
 
   const handlePositionClick = (position: Position) => {
-    // Yetki kontrolü
-    if (!isAuthorized) {
+    // Yetki kontrolü - team ve currentUser yüklendiğinden emin ol
+    const currentIsAuthorized = (team?.created_by === currentUser?.id) || (team?.captain_id === currentUser?.id);
+    
+    if (!currentIsAuthorized) {
       (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Yetki Hatası!',
@@ -354,8 +356,10 @@ export default function TeamFormationPage() {
   };
 
   const handlePlayerSelect = (player: Player) => {
-    // Yetki kontrolü
-    if (!isAuthorized) {
+    // Yetki kontrolü - team ve currentUser yüklendiğinden emin ol
+    const currentIsAuthorized = (team?.created_by === currentUser?.id) || (team?.captain_id === currentUser?.id);
+    
+    if (!currentIsAuthorized) {
       (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Yetki Hatası!',
@@ -369,8 +373,10 @@ export default function TeamFormationPage() {
   };
 
   const handleFormationChange = (formationName: string) => {
-    // Yetki kontrolü
-    if (!isAuthorized) {
+    // Yetki kontrolü - team ve currentUser yüklendiğinden emin ol
+    const currentIsAuthorized = (team?.created_by === currentUser?.id) || (team?.captain_id === currentUser?.id);
+    
+    if (!currentIsAuthorized) {
       (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Yetki Hatası!',
@@ -384,8 +390,10 @@ export default function TeamFormationPage() {
   };
 
   const handleSaveFormation = async () => {
-    // Yetki kontrolü
-    if (!isAuthorized) {
+    // Yetki kontrolü - team ve currentUser yüklendiğinden emin ol
+    const currentIsAuthorized = (team?.created_by === currentUser?.id) || (team?.captain_id === currentUser?.id);
+    
+    if (!currentIsAuthorized) {
       (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Yetki Hatası!',
@@ -473,6 +481,17 @@ export default function TeamFormationPage() {
   const isTeamOwner = team?.created_by === currentUser?.id;
   const isAuthorized = isTeamOwner || team?.captain_id === currentUser?.id;
   const isTeamMember = players.some(player => player.user_id === currentUser?.id && player.is_active);
+  
+  // Debug için
+  console.log('Yetki Kontrolü:', {
+    teamId: team?.id,
+    teamOwnerId: team?.created_by,
+    teamCaptainId: team?.captain_id,
+    currentUserId: currentUser?.id,
+    isTeamOwner,
+    isAuthorized,
+    isTeamMember
+  });
 
   // Kullanıcının takımda oyuncu olup olmadığını kontrol et
   if (!isTeamOwner && !isAuthorized && !isTeamMember) {
