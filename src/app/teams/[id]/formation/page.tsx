@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/navbar';
 import TeamNavigation from '@/components/TeamNavigation';
+import { X } from 'lucide-react';
 
 interface Player {
   id: number; // players tablosundaki id
@@ -344,8 +345,19 @@ export default function TeamFormationPage() {
       return;
     }
 
+    // Eğer pozisyonda oyuncu varsa, oyuncuyu kaldır
+    if (position.player) {
+      const updatedPositions = positions.map(pos => 
+        pos.id === position.id 
+          ? { ...pos, player: undefined }
+          : pos
+      );
+      setPositions(updatedPositions);
+      return;
+    }
+
+    // Eğer bir oyuncu seçiliyse, oyuncuyu pozisyona yerleştir
     if (selectedPlayer) {
-      // Oyuncuyu pozisyona yerleştir
       const updatedPositions = positions.map(pos => 
         pos.id === position.id 
           ? { ...pos, player: selectedPlayer }
@@ -641,9 +653,9 @@ export default function TeamFormationPage() {
                       <div
                         key={position.id}
                         onClick={() => handlePositionClick(position)}
-                        className={`absolute w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all ${
+                        className={`absolute w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all group ${
                           position.player
-                            ? 'bg-blue-500 border-blue-600 text-white shadow-lg'
+                            ? 'bg-blue-500 border-blue-600 text-white shadow-lg hover:bg-red-500 hover:border-red-600'
                             : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                         } ${isAuthorized ? 'cursor-pointer hover:scale-105' : 'cursor-not-allowed opacity-75'}`}
                         style={{
@@ -653,12 +665,22 @@ export default function TeamFormationPage() {
                         }}
                       >
                         {position.player ? (
-                          <div className="text-center">
-                            <div className="text-xs font-bold truncate max-w-12">
-                              {position.player.full_name.split(' ')[0]}
+                          <>
+                            {/* Normal görünüm */}
+                            <div className="text-center group-hover:hidden">
+                              <div className="text-xs font-bold truncate max-w-12">
+                                {position.player.full_name.split(' ')[0]}
+                              </div>
+                              <div className="text-xs opacity-75">{position.name}</div>
                             </div>
-                            <div className="text-xs opacity-75">{position.name}</div>
-                          </div>
+                            {/* Hover durumunda çarpı işareti */}
+                            {isAuthorized && (
+                              <div className="hidden group-hover:flex flex-col items-center justify-center">
+                                <X className="w-8 h-8 text-white opacity-90" />
+                                <span className="text-xs mt-1">Kaldır</span>
+                              </div>
+                            )}
+                          </>
                         ) : (
                           <div className="text-center">
                             <div className="text-xs font-bold">{position.name}</div>
