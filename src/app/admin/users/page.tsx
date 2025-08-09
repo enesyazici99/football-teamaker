@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,8 +13,6 @@ import {
   Trash2,
   ArrowLeft,
   Shield,
-  UserCheck,
-  UserX,
   Mail,
   Calendar
 } from 'lucide-react';
@@ -44,7 +42,7 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
   useEffect(() => {
     // Filter users based on search term
@@ -60,7 +58,7 @@ export default function AdminUsersPage() {
     }
   }, [searchTerm, users]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/users', {
         credentials: 'include'
@@ -78,7 +76,7 @@ export default function AdminUsersPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
 
   const handleDeleteUser = async () => {
     if (!userToDelete || deleteConfirmName !== userToDelete.username) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,6 @@ import {
   Activity, 
   LogOut,
   BarChart3,
-  Trash2,
   Database,
   RefreshCw
 } from 'lucide-react';
@@ -34,12 +33,7 @@ export default function AdminDashboard() {
   const [migrationLoading, setMigrationLoading] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    fetchStats();
-    checkMigrationStatus();
-  }, []);
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/stats', {
         credentials: 'include'
@@ -56,9 +50,9 @@ export default function AdminDashboard() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
 
-  const checkMigrationStatus = async () => {
+  const checkMigrationStatus = useCallback(async () => {
     try {
       const response = await fetch('/api/migrate');
       const data = await response.json();
@@ -71,7 +65,12 @@ export default function AdminDashboard() {
     } catch {
       setMigrationStatus('up_to_date'); // Varsayılan olarak güncel kabul et
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+    checkMigrationStatus();
+  }, [fetchStats, checkMigrationStatus]);
 
   const runMigration = async () => {
     setMigrationLoading(true);

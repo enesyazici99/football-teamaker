@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,9 +14,7 @@ import {
   ArrowLeft,
   Shield,
   MapPin,
-  Trophy,
-  Clock,
-  Users
+  Clock
 } from 'lucide-react';
 
 interface Match {
@@ -46,7 +44,7 @@ export default function AdminMatchesPage() {
 
   useEffect(() => {
     fetchMatches();
-  }, []);
+  }, [fetchMatches]);
 
   useEffect(() => {
     // Filter matches based on search term and status
@@ -67,7 +65,7 @@ export default function AdminMatchesPage() {
     setFilteredMatches(filtered);
   }, [searchTerm, selectedStatus, matches]);
 
-  const fetchMatches = async () => {
+  const fetchMatches = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/matches', {
         credentials: 'include'
@@ -85,7 +83,7 @@ export default function AdminMatchesPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
 
   const handleDeleteMatch = async () => {
     if (!matchToDelete) return;
@@ -112,7 +110,7 @@ export default function AdminMatchesPage() {
     }
   };
 
-  const getStatusText = (status: string) => {
+  const _getStatusText = (status: string) => {
     switch (status) {
       case 'scheduled':
         return 'Planlandı';

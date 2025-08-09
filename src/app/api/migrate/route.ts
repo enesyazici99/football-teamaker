@@ -15,52 +15,52 @@ export async function POST() {
     // 2. Foreign Key Constraint'lerini düzelt
     console.log('🔧 Fixing foreign key constraints...');
     
-    const constraintMigration = await sql`
-      DO $$ 
-      DECLARE
-        constraint_fixed_count INTEGER := 0;
-      BEGIN
-        -- Fix players.user_id constraint if it's not CASCADE
-        IF EXISTS (
-          SELECT 1 FROM information_schema.referential_constraints 
-          WHERE constraint_name = 'players_user_id_fkey' 
-          AND delete_rule = 'NO ACTION'
-        ) THEN
-          ALTER TABLE players DROP CONSTRAINT players_user_id_fkey;
-          ALTER TABLE players ADD CONSTRAINT players_user_id_fkey 
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
-          constraint_fixed_count := constraint_fixed_count + 1;
-          RAISE NOTICE 'Fixed players.user_id constraint to CASCADE';
-        END IF;
-        
-        -- Fix match_players.player_id constraint if it's not CASCADE
-        IF EXISTS (
-          SELECT 1 FROM information_schema.referential_constraints 
-          WHERE constraint_name = 'match_players_player_id_fkey' 
-          AND delete_rule = 'NO ACTION'
-        ) THEN
-          ALTER TABLE match_players DROP CONSTRAINT match_players_player_id_fkey;
-          ALTER TABLE match_players ADD CONSTRAINT match_players_player_id_fkey 
-            FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE;
-          constraint_fixed_count := constraint_fixed_count + 1;
-          RAISE NOTICE 'Fixed match_players.player_id constraint to CASCADE';
-        END IF;
-        
-        -- Fix match_players.match_id constraint if it's not CASCADE
-        IF EXISTS (
-          SELECT 1 FROM information_schema.referential_constraints 
-          WHERE constraint_name = 'match_players_match_id_fkey' 
-          AND delete_rule = 'NO ACTION'
-        ) THEN
-          ALTER TABLE match_players DROP CONSTRAINT match_players_match_id_fkey;
-          ALTER TABLE match_players ADD CONSTRAINT match_players_match_id_fkey 
-            FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE;
-          constraint_fixed_count := constraint_fixed_count + 1;
-          RAISE NOTICE 'Fixed match_players.match_id constraint to CASCADE';
-        END IF;
-        
-        RAISE NOTICE 'Migration completed. Fixed % constraints.', constraint_fixed_count;
-      END $$;
+          const _constraintMigration = await sql`
+        DO $$ 
+        DECLARE
+          constraint_fixed_count INTEGER := 0;
+        BEGIN
+          -- Fix players.user_id constraint if it's not CASCADE
+          IF EXISTS (
+            SELECT 1 FROM information_schema.referential_constraints 
+            WHERE constraint_name = 'players_user_id_fkey' 
+            AND delete_rule = 'NO ACTION'
+          ) THEN
+            ALTER TABLE players DROP CONSTRAINT players_user_id_fkey;
+            ALTER TABLE players ADD CONSTRAINT players_user_id_fkey 
+              FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+            constraint_fixed_count := constraint_fixed_count + 1;
+            RAISE NOTICE 'Fixed players.user_id constraint to CASCADE';
+          END IF;
+          
+          -- Fix match_players.player_id constraint if it's not CASCADE
+          IF EXISTS (
+            SELECT 1 FROM information_schema.referential_constraints 
+            WHERE constraint_name = 'match_players_player_id_fkey' 
+            AND delete_rule = 'NO ACTION'
+          ) THEN
+            ALTER TABLE match_players DROP CONSTRAINT match_players_player_id_fkey;
+            ALTER TABLE match_players ADD CONSTRAINT match_players_player_id_fkey 
+              FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE;
+            constraint_fixed_count := constraint_fixed_count + 1;
+            RAISE NOTICE 'Fixed match_players.player_id constraint to CASCADE';
+          END IF;
+          
+          -- Fix match_players.match_id constraint if it's not CASCADE
+          IF EXISTS (
+            SELECT 1 FROM information_schema.referential_constraints 
+            WHERE constraint_name = 'match_players_match_id_fkey' 
+            AND delete_rule = 'NO ACTION'
+          ) THEN
+            ALTER TABLE match_players DROP CONSTRAINT match_players_match_id_fkey;
+            ALTER TABLE match_players ADD CONSTRAINT match_players_match_id_fkey 
+              FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE;
+            constraint_fixed_count := constraint_fixed_count + 1;
+            RAISE NOTICE 'Fixed match_players.match_id constraint to CASCADE';
+          END IF;
+          
+          RAISE NOTICE 'Migration completed. Fixed % constraints.', constraint_fixed_count;
+        END $$;
     `;
     
     console.log('✅ Foreign key constraints migration completed');
@@ -134,7 +134,7 @@ export async function GET(request: Request) {
       // 2. Foreign Key Constraint'lerini düzelt
       console.log('🔧 Fixing foreign key constraints...');
       
-      const constraintMigration = await sql`
+      const _constraintMigration = await sql`
         DO $$ 
         DECLARE
           constraint_fixed_count INTEGER := 0;
