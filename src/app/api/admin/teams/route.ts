@@ -16,15 +16,15 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Enrich teams with additional data
-    const enrichedTeams = teams.map(team => {
-      const creator = users.find(u => u.id === team.created_by);
-      const captain = team.captain_id ? users.find(u => u.id === team.captain_id) : null;
+    const enrichedTeams = teams.map((team: any) => {
+      const creator = users.find((u: any) => u.id === team.created_by);
+      const captain = team.captain_id ? users.find((u: any) => u.id === team.captain_id) : null;
       
       // Count real players for this team
-      const player_count = players.filter(p => p.team_id === team.id && p.is_active).length;
+      const player_count = players.filter((p: any) => p.team_id === team.id && p.is_active).length;
       
       // Count real matches for this team
-      const match_count = matches.filter(m => m.team_id === team.id).length;
+      const match_count = matches.filter((m: any) => m.team_id === team.id).length;
 
       return {
         ...team,

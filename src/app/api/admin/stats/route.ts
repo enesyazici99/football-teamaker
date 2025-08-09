@@ -22,11 +22,11 @@ export async function GET(request: NextRequest) {
     const totalMatches = matches.length;
     
     // Active users (users who have created teams or are players in teams)
-    const activeUserIds = new Set();
-    teams.forEach(team => {
+    const activeUserIds = new Set<number>();
+    teams.forEach((team: any) => {
       if (team.created_by) activeUserIds.add(team.created_by);
     });
-    players.forEach(player => {
+    players.forEach((player: any) => {
       if (player.user_id) activeUserIds.add(player.user_id);
     });
     const activeUsers = activeUserIds.size;
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
     
-    const todayMatches = matches.filter(match => {
+    const todayMatches = matches.filter((match: any) => {
       const matchDate = new Date(match.match_date);
       return matchDate >= todayStart && matchDate < todayEnd;
     }).length;

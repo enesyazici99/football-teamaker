@@ -15,14 +15,22 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Enrich matches with team and user data
-    const enrichedMatches = matches.map(match => {
-      const team = teams.find(t => t.id === match.team_id);
-      const creator = team ? users.find(u => u.id === team.created_by) : null;
+    const enrichedMatches = matches.map((match: any) => {
+      const team = teams.find((t: any) => t.id === match.team_id);
+      const creator = team ? users.find((u: any) => u.id === team.created_by) : null;
 
       return {
-        ...match,
+        id: match.id,
+        team_id: match.team_id,
         team_name: team?.name || 'Bilinmeyen Takım',
-        created_by_name: creator?.full_name || creator?.username
+        opponent_team: match.opponent_team,
+        match_date: match.match_date,
+        location: match.location,
+        status: match.status,
+        home_score: match.home_score,
+        away_score: match.away_score,
+        created_at: match.created_at,
+        created_by_name: creator?.full_name || creator?.username || null
       };
     });
 
