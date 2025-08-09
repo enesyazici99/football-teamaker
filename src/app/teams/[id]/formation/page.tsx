@@ -575,7 +575,7 @@ export default function TeamFormationPage() {
       const touchRelativeX = ((touch.clientX - fieldRect.left) / fieldRect.width) * 100;
       const touchRelativeY = ((touch.clientY - fieldRect.top) / fieldRect.height) * 100;
       
-      let closestPosition: typeof positions[0] | null = null;
+      let closestPosition: Position | null = null;
       let closestDistance = Infinity;
       
       positions.forEach(pos => {
