@@ -15,9 +15,9 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Enrich matches with team and user data
-    const enrichedMatches = matches.map((match: { id: number; team_id: number; opponent_team?: string; match_date: string; location?: string; status: string; home_score: number; away_score: number; created_at: string; }) => {
-      const team = teams.find((t: { id: number; name: string; created_by: number; }) => t.id === match.team_id);
-      const creator = team ? users.find((u: { id: number; full_name?: string; username: string; }) => u.id === team.created_by) : null;
+    const enrichedMatches = (matches as any[]).map((match) => {
+      const team = (teams as any[]).find((t) => t.id === match.team_id);
+      const creator = team ? (users as any[]).find((u) => u.id === team.created_by) : null;
 
       return {
         id: match.id,

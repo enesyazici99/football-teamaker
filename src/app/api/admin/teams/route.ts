@@ -16,15 +16,15 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Enrich teams with additional data
-    const enrichedTeams = teams.map((team: { id: number; name: string; created_by: number; captain_id?: number; }) => {
-      const creator = users.find((u: { id: number; full_name?: string; username: string; }) => u.id === team.created_by);
-      const captain = team.captain_id ? users.find((u: { id: number; full_name?: string; username: string; }) => u.id === team.captain_id) : null;
+    const enrichedTeams = (teams as any[]).map((team) => {
+      const creator = (users as any[]).find((u) => u.id === team.created_by);
+      const captain = team.captain_id ? (users as any[]).find((u) => u.id === team.captain_id) : null;
       
       // Count real players for this team
-      const player_count = players.filter((p: { team_id: number; is_active: boolean; }) => p.team_id === team.id && p.is_active).length;
+      const player_count = (players as any[]).filter((p) => p.team_id === team.id && p.is_active).length;
       
       // Count real matches for this team
-      const match_count = matches.filter((m: { team_id: number; }) => m.team_id === team.id).length;
+      const match_count = (matches as any[]).filter((m) => m.team_id === team.id).length;
 
       return {
         ...team,
