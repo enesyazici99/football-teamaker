@@ -40,24 +40,6 @@ export default function AdminUsersPage() {
   const [deleteConfirmName, setDeleteConfirmName] = useState('');
   const router = useRouter();
 
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
-
-  useEffect(() => {
-    // Filter users based on search term
-    if (searchTerm.trim() === '') {
-      setFilteredUsers(users);
-    } else {
-      const filtered = users.filter(user =>
-        user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredUsers(filtered);
-    }
-  }, [searchTerm, users]);
-
   const fetchUsers = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/users', {
@@ -77,6 +59,24 @@ export default function AdminUsersPage() {
       setIsLoading(false);
     }
   }, [router]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  useEffect(() => {
+    // Filter users based on search term
+    if (searchTerm.trim() === '') {
+      setFilteredUsers(users);
+    } else {
+      const filtered = users.filter(user =>
+        user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredUsers(filtered);
+    }
+  }, [searchTerm, users]);
 
   const handleDeleteUser = async () => {
     if (!userToDelete || deleteConfirmName !== userToDelete.username) {

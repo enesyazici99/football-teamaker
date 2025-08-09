@@ -42,6 +42,26 @@ export default function AdminMatchesPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const router = useRouter();
 
+  const fetchMatches = useCallback(async () => {
+    try {
+      const response = await fetch('/api/admin/matches', {
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setMatches(data.matches);
+        setFilteredMatches(data.matches);
+      } else if (response.status === 401) {
+        router.push('/admin/login');
+      }
+    } catch (error) {
+      console.error('Matches fetch error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [router]);
+
   useEffect(() => {
     fetchMatches();
   }, [fetchMatches]);
@@ -64,26 +84,6 @@ export default function AdminMatchesPage() {
 
     setFilteredMatches(filtered);
   }, [searchTerm, selectedStatus, matches]);
-
-  const fetchMatches = useCallback(async () => {
-    try {
-      const response = await fetch('/api/admin/matches', {
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setMatches(data.matches);
-        setFilteredMatches(data.matches);
-      } else if (response.status === 401) {
-        router.push('/admin/login');
-      }
-    } catch (error) {
-      console.error('Matches fetch error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [router]);
 
   const handleDeleteMatch = async () => {
     if (!matchToDelete) return;
