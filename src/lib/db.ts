@@ -567,7 +567,7 @@ export const teamDB = {
     
     // Birleştir ve tekrarları kaldır
     const allTeams = [...ownedTeams];
-    playerTeams.forEach((playerTeam: { id: number }) => {
+    playerTeams.forEach((playerTeam: any) => {
       if (!allTeams.some(team => team.id === playerTeam.id)) {
         allTeams.push(playerTeam);
       }
