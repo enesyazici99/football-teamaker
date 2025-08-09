@@ -236,6 +236,9 @@ export default function TeamFormationPage() {
   const [hoveredPositionId, setHoveredPositionId] = useState<string | null>(null);
   const [draggedPlayer, setDraggedPlayer] = useState<Player | null>(null);
   const [draggedFromPosition, setDraggedFromPosition] = useState<string | null>(null);
+  const [touchedPlayer, setTouchedPlayer] = useState<Player | null>(null);
+  const [touchedFromPosition, setTouchedFromPosition] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const router = useRouter();
   const params = useParams();
   const teamId = params.id as string;
@@ -314,6 +317,16 @@ export default function TeamFormationPage() {
       fetchTeamData();
     }
   }, [teamId, fetchTeamData]);
+
+  // Mobil cihaz kontrolü
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Formasyon değiştiğinde pozisyonları güncelle
   useEffect(() => {
@@ -460,6 +473,93 @@ export default function TeamFormationPage() {
   const handleDragEnd = () => {
     setDraggedPlayer(null);
     setDraggedFromPosition(null);
+  };
+
+  // Mobil touch eventleri
+  const handleTouchStart = (e: React.TouchEvent, player: Player, fromPositionId?: string) => {
+    const currentIsAuthorized = (team?.created_by === currentUser?.id) || 
+                                (team?.captain_id === currentUser?.id) || 
+                                (team?.authorized_members?.includes(currentUser?.id || 0) || false);
+    
+    if (!currentIsAuthorized) return;
+    
+    e.preventDefault();
+    setTouchedPlayer(player);
+    if (fromPositionId) {
+      setTouchedFromPosition(fromPositionId);
+    }
+    
+    // Touch ile sürükleme efekti için
+    const touch = e.touches[0];
+    const element = e.currentTarget as HTMLElement;
+    element.style.position = 'fixed';
+    element.style.zIndex = '9999';
+    element.style.left = `${touch.clientX - 32}px`;
+    element.style.top = `${touch.clientY - 32}px`;
+    element.style.pointerEvents = 'none';
+    element.style.opacity = '0.8';
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchedPlayer) return;
+    e.preventDefault();
+    
+    const touch = e.touches[0];
+    const element = e.currentTarget as HTMLElement;
+    element.style.left = `${touch.clientX - 32}px`;
+    element.style.top = `${touch.clientY - 32}px`;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchedPlayer) return;
+    e.preventDefault();
+    
+    const touch = e.changedTouches[0];
+    const element = e.currentTarget as HTMLElement;
+    
+    // Stili sıfırla
+    element.style.position = '';
+    element.style.zIndex = '';
+    element.style.left = '';
+    element.style.top = '';
+    element.style.pointerEvents = '';
+    element.style.opacity = '';
+    
+    // Bırakılan pozisyonu bul
+    const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+    const positionElement = elementBelow?.closest('[data-position-id]');
+    
+    if (positionElement) {
+      const targetPositionId = positionElement.getAttribute('data-position-id');
+      if (targetPositionId) {
+        handleMobileDrop(targetPositionId);
+      }
+    }
+    
+    setTouchedPlayer(null);
+    setTouchedFromPosition(null);
+  };
+
+  const handleMobileDrop = (targetPositionId: string) => {
+    if (!touchedPlayer) return;
+    
+    const updatedPositions = positions.map(pos => {
+      // Hedef pozisyon
+      if (pos.id === targetPositionId) {
+        return { ...pos, player: touchedPlayer };
+      }
+      // Eski pozisyonu temizle
+      if (touchedFromPosition && pos.id === touchedFromPosition) {
+        return { ...pos, player: undefined };
+      }
+      // Diğer pozisyonlardan da temizle (eğer aynı oyuncu başka yerdeyse)
+      if (!touchedFromPosition && pos.player?.id === touchedPlayer.id) {
+        return { ...pos, player: undefined };
+      }
+      return pos;
+    });
+    
+    setPositions(updatedPositions);
   };
 
   const handleSaveFormation = async () => {
@@ -669,10 +769,15 @@ export default function TeamFormationPage() {
                     Saha Dizilimi
                   </CardTitle>
                   <CardDescription className="text-muted-foreground">
-                    {selectedPlayer 
-                      ? `${selectedPlayer.full_name} için pozisyon seçin`
-                      : 'Oyuncu seçmek için aşağıdaki listeden bir oyuncuya tıklayın'
-                    }
+                    {isMobile ? (
+                      isAuthorized ? 
+                        'Oyuncuları basılı tutup sürükleyerek pozisyon değiştirebilirsiniz' :
+                        'Mevcut dizilimi görüntülüyorsunuz'
+                    ) : (
+                      selectedPlayer 
+                        ? `${selectedPlayer.full_name} için pozisyon seçin`
+                        : 'Oyuncu seçmek için aşağıdaki listeden bir oyuncuya tıklayın'
+                    )}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -713,15 +818,19 @@ export default function TeamFormationPage() {
                     {positions.map((position) => (
                       <div
                         key={position.id}
-                        onClick={() => handlePositionClick(position)}
-                        onMouseEnter={() => position.player && setHoveredPositionId(position.id)}
-                        onMouseLeave={() => setHoveredPositionId(null)}
-                        onDragOver={handleDragOver}
-                        onDrop={(e) => handleDrop(e, position.id)}
-                        draggable={position.player && isAuthorized}
-                        onDragStart={(e) => position.player && handleDragStart(e, position.player, position.id)}
-                        onDragEnd={handleDragEnd}
-                        className={`absolute w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all ${
+                        data-position-id={position.id}
+                        onClick={() => !isMobile && handlePositionClick(position)}
+                        onMouseEnter={() => !isMobile && position.player && setHoveredPositionId(position.id)}
+                        onMouseLeave={() => !isMobile && setHoveredPositionId(null)}
+                        onDragOver={!isMobile ? handleDragOver : undefined}
+                        onDrop={!isMobile ? (e) => handleDrop(e, position.id) : undefined}
+                        draggable={!isMobile && position.player && isAuthorized}
+                        onDragStart={!isMobile ? (e) => position.player && handleDragStart(e, position.player, position.id) : undefined}
+                        onDragEnd={!isMobile ? handleDragEnd : undefined}
+                        onTouchStart={isMobile && position.player && isAuthorized ? (e) => handleTouchStart(e, position.player, position.id) : undefined}
+                        onTouchMove={isMobile && position.player && isAuthorized ? handleTouchMove : undefined}
+                        onTouchEnd={isMobile && position.player && isAuthorized ? handleTouchEnd : undefined}
+                        className={`absolute w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all touch-none ${
                           position.player
                             ? hoveredPositionId === position.id && isAuthorized
                               ? 'bg-red-500 border-red-600 text-white shadow-lg cursor-move'
@@ -791,11 +900,14 @@ export default function TeamFormationPage() {
                       return (
                         <div
                           key={player.id}
-                          onClick={() => handlePlayerSelect(player)}
-                          draggable={isAuthorized && !isPlayerOnField}
-                          onDragStart={(e) => !isPlayerOnField && handleDragStart(e, player)}
-                          onDragEnd={handleDragEnd}
-                          className={`p-3 rounded-lg transition-colors border-2 ${
+                          onClick={() => !isMobile && handlePlayerSelect(player)}
+                          draggable={!isMobile && isAuthorized && !isPlayerOnField}
+                          onDragStart={!isMobile && !isPlayerOnField ? (e) => handleDragStart(e, player) : undefined}
+                          onDragEnd={!isMobile ? handleDragEnd : undefined}
+                          onTouchStart={isMobile && isAuthorized && !isPlayerOnField ? (e) => handleTouchStart(e, player) : undefined}
+                          onTouchMove={isMobile && isAuthorized && !isPlayerOnField ? handleTouchMove : undefined}
+                          onTouchEnd={isMobile && isAuthorized && !isPlayerOnField ? handleTouchEnd : undefined}
+                          className={`p-3 rounded-lg transition-colors border-2 touch-none ${
                             selectedPlayer?.id === player.id
                               ? 'bg-blue-100 border-blue-500 dark:bg-blue-900 dark:border-blue-400'
                               : isPlayerOnField
