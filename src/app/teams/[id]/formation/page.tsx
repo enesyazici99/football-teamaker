@@ -827,7 +827,7 @@ export default function TeamFormationPage() {
                         draggable={!isMobile && position.player && isAuthorized}
                         onDragStart={!isMobile ? (e) => position.player && handleDragStart(e, position.player, position.id) : undefined}
                         onDragEnd={!isMobile ? handleDragEnd : undefined}
-                        onTouchStart={isMobile && position.player && isAuthorized ? (e) => handleTouchStart(e, position.player, position.id) : undefined}
+                        onTouchStart={isMobile && position.player && isAuthorized ? (e) => handleTouchStart(e, position.player!, position.id) : undefined}
                         onTouchMove={isMobile && position.player && isAuthorized ? handleTouchMove : undefined}
                         onTouchEnd={isMobile && position.player && isAuthorized ? handleTouchEnd : undefined}
                         className={`absolute w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all touch-none ${
