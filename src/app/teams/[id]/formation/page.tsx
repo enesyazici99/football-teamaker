@@ -488,24 +488,37 @@ export default function TeamFormationPage() {
     setTouchedPlayer(player);
     if (fromPositionId) {
       setTouchedFromPosition(fromPositionId);
+      // Sahadan sürükleniyorsa hover'ı kapat
+      setHoveredPositionId(null);
     }
     
-    // Sürükleme göstergesi için bir klon oluştur
+    // Sürükleme göstergesi için özel bir yuvarlak element oluştur
     const touch = e.touches[0];
     const element = e.currentTarget as HTMLElement;
-    const clone = element.cloneNode(true) as HTMLElement;
     
-    // Klonu stillendir ve body'e ekle
-    clone.id = 'drag-clone';
-    clone.style.position = 'fixed';
-    clone.style.zIndex = '9999';
-    clone.style.left = `${touch.clientX - 32}px`;
-    clone.style.top = `${touch.clientY - 32}px`;
-    clone.style.pointerEvents = 'none';
-    clone.style.opacity = '0.8';
-    clone.style.transform = 'scale(0.9)';
-    clone.style.transition = 'none';
-    document.body.appendChild(clone);
+    // Yuvarlak sürükleme elementi oluştur
+    const dragElement = document.createElement('div');
+    dragElement.id = 'drag-clone';
+    dragElement.className = 'fixed bg-blue-500 text-white rounded-full w-16 h-16 flex items-center justify-center shadow-lg border-2 border-blue-600';
+    dragElement.style.position = 'fixed';
+    dragElement.style.zIndex = '9999';
+    dragElement.style.left = `${touch.clientX - 32}px`;
+    dragElement.style.top = `${touch.clientY - 32}px`;
+    dragElement.style.pointerEvents = 'none';
+    dragElement.style.opacity = '0.9';
+    dragElement.style.transform = 'scale(0.95)';
+    
+    // Oyuncu bilgisini ekle
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'text-center';
+    nameDiv.innerHTML = `
+      <div class="text-xs font-bold truncate max-w-12">
+        ${player.full_name.split(' ')[0]}
+      </div>
+    `;
+    dragElement.appendChild(nameDiv);
+    
+    document.body.appendChild(dragElement);
     
     // Orijinal elementi yarı saydam yap
     element.style.opacity = '0.3';
@@ -517,11 +530,11 @@ export default function TeamFormationPage() {
     e.stopPropagation();
     
     const touch = e.touches[0];
-    const clone = document.getElementById('drag-clone');
+    const dragElement = document.getElementById('drag-clone');
     
-    if (clone) {
-      clone.style.left = `${touch.clientX - 32}px`;
-      clone.style.top = `${touch.clientY - 32}px`;
+    if (dragElement) {
+      dragElement.style.left = `${touch.clientX - 32}px`;
+      dragElement.style.top = `${touch.clientY - 32}px`;
     }
   };
 
@@ -536,10 +549,10 @@ export default function TeamFormationPage() {
     // Orijinal elementi normale döndür
     element.style.opacity = '';
     
-    // Klonu kaldır
-    const clone = document.getElementById('drag-clone');
-    if (clone) {
-      clone.remove();
+    // Sürükleme elementini kaldır
+    const dragElement = document.getElementById('drag-clone');
+    if (dragElement) {
+      dragElement.remove();
     }
     
     // Saha alanını bul
@@ -562,7 +575,7 @@ export default function TeamFormationPage() {
       const touchRelativeX = ((touch.clientX - fieldRect.left) / fieldRect.width) * 100;
       const touchRelativeY = ((touch.clientY - fieldRect.top) / fieldRect.height) * 100;
       
-      let closestPosition: Position | null = null;
+      let closestPosition: typeof positions[0] | null = null;
       let closestDistance = Infinity;
       
       positions.forEach(pos => {
@@ -894,7 +907,7 @@ export default function TeamFormationPage() {
                         {position.player ? (
                           <>
                             {/* Normal görünüm veya hover durumu */}
-                            {hoveredPositionId === position.id && isAuthorized ? (
+                            {hoveredPositionId === position.id && isAuthorized && !touchedPlayer && !draggedPlayer && !touchedFromPosition ? (
                               <div className="flex flex-col items-center justify-center">
                                 <X className="w-8 h-8 text-white opacity-90" />
                                 <span className="text-xs mt-1">Kaldır</span>
