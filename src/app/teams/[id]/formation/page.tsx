@@ -30,6 +30,7 @@ interface Team {
   captain_id?: number;
   team_size: number;
   created_at: string;
+  authorized_members?: number[];
 }
 
 interface Position {
@@ -329,7 +330,9 @@ export default function TeamFormationPage() {
 
   const handlePositionClick = (position: Position) => {
     // Yetki kontrolü - team ve currentUser yüklendiğinden emin ol
-    const currentIsAuthorized = (team?.created_by === currentUser?.id) || (team?.captain_id === currentUser?.id);
+    const currentIsAuthorized = (team?.created_by === currentUser?.id) || 
+                                (team?.captain_id === currentUser?.id) || 
+                                (team?.authorized_members?.includes(currentUser?.id || 0) || false);
     
     if (!currentIsAuthorized) {
       (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
@@ -357,7 +360,9 @@ export default function TeamFormationPage() {
 
   const handlePlayerSelect = (player: Player) => {
     // Yetki kontrolü - team ve currentUser yüklendiğinden emin ol
-    const currentIsAuthorized = (team?.created_by === currentUser?.id) || (team?.captain_id === currentUser?.id);
+    const currentIsAuthorized = (team?.created_by === currentUser?.id) || 
+                                (team?.captain_id === currentUser?.id) || 
+                                (team?.authorized_members?.includes(currentUser?.id || 0) || false);
     
     if (!currentIsAuthorized) {
       (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
@@ -374,7 +379,9 @@ export default function TeamFormationPage() {
 
   const handleFormationChange = (formationName: string) => {
     // Yetki kontrolü - team ve currentUser yüklendiğinden emin ol
-    const currentIsAuthorized = (team?.created_by === currentUser?.id) || (team?.captain_id === currentUser?.id);
+    const currentIsAuthorized = (team?.created_by === currentUser?.id) || 
+                                (team?.captain_id === currentUser?.id) || 
+                                (team?.authorized_members?.includes(currentUser?.id || 0) || false);
     
     if (!currentIsAuthorized) {
       (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
@@ -391,7 +398,9 @@ export default function TeamFormationPage() {
 
   const handleSaveFormation = async () => {
     // Yetki kontrolü - team ve currentUser yüklendiğinden emin ol
-    const currentIsAuthorized = (team?.created_by === currentUser?.id) || (team?.captain_id === currentUser?.id);
+    const currentIsAuthorized = (team?.created_by === currentUser?.id) || 
+                                (team?.captain_id === currentUser?.id) || 
+                                (team?.authorized_members?.includes(currentUser?.id || 0) || false);
     
     if (!currentIsAuthorized) {
       (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
@@ -479,7 +488,9 @@ export default function TeamFormationPage() {
 
   // Takım sahibi veya yetkili üye kontrolü
   const isTeamOwner = team?.created_by === currentUser?.id;
-  const isAuthorized = isTeamOwner || team?.captain_id === currentUser?.id;
+  const isCaptain = team?.captain_id === currentUser?.id;
+  const isInAuthorizedMembers = team?.authorized_members?.includes(currentUser?.id || 0) || false;
+  const isAuthorized = isTeamOwner || isCaptain || isInAuthorizedMembers;
   const isTeamMember = players.some(player => player.user_id === currentUser?.id && player.is_active);
   
   // Debug için
@@ -487,8 +498,11 @@ export default function TeamFormationPage() {
     teamId: team?.id,
     teamOwnerId: team?.created_by,
     teamCaptainId: team?.captain_id,
+    authorizedMembers: team?.authorized_members,
     currentUserId: currentUser?.id,
     isTeamOwner,
+    isCaptain,
+    isInAuthorizedMembers,
     isAuthorized,
     isTeamMember
   });
