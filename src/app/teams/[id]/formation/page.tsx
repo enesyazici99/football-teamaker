@@ -938,7 +938,7 @@ export default function TeamFormationPage() {
                           e.stopPropagation();
                           handlePositionClick(position);
                         }}
-                        onClick={(e) => {
+                        onClick={() => {
                           // Web'de kullan
                           if (isMobile) return;
                           handlePositionClick(position);
