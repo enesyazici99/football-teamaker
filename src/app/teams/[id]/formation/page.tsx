@@ -370,6 +370,11 @@ export default function TeamFormationPage() {
   }, [selectedFormation, isLoading]);
 
   const handlePositionClick = (position: Position) => {
+    // Mobilde sürükleme için tıklama yapılıyorsa, pozisyon click'i çalıştırma
+    if (isMobile && position.player) {
+      return; // Mobilde sahada oyuncu varsa tıklama ile kaldırma yapma
+    }
+
     // Yetki kontrolü - team ve currentUser yüklendiğinden emin ol
     const currentIsAuthorized = (team?.created_by === currentUser?.id) || 
                                 (team?.captain_id === currentUser?.id) || 
@@ -385,8 +390,8 @@ export default function TeamFormationPage() {
       return;
     }
 
-    // Eğer pozisyonda oyuncu varsa, oyuncuyu kaldır
-    if (position.player) {
+    // Web'de: Eğer pozisyonda oyuncu varsa, oyuncuyu kaldır
+    if (!isMobile && position.player) {
       const updatedPositions = positions.map(pos => 
         pos.id === position.id 
           ? { ...pos, player: undefined }
@@ -946,7 +951,11 @@ export default function TeamFormationPage() {
                           if (!isMobile) return;
                           e.preventDefault();
                           e.stopPropagation();
-                          handlePositionClick(position);
+                          // Mobilde boş pozisyona tıklandığında oyuncu yerleştir
+                          if (!position.player && selectedPlayer) {
+                            handlePositionClick(position);
+                          }
+                          // Dolu pozisyonda sürükleme touch event'leri ile yapılacak
                         }}
                         onClick={() => {
                           // Web'de kullan
