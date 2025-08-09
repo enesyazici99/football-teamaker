@@ -479,7 +479,36 @@ export const userDB = {
       // Start a transaction
       await sql`BEGIN`;
       
-      // First, update teams where this user is the creator or captain to NULL
+      // Fix foreign key constraints if they are not CASCADE (migrate to CASCADE)
+      await sql`
+        DO $$ 
+        BEGIN
+          -- Fix players.user_id constraint if it's not CASCADE
+          IF EXISTS (
+            SELECT 1 FROM information_schema.referential_constraints 
+            WHERE constraint_name = 'players_user_id_fkey' 
+            AND delete_rule = 'NO ACTION'
+          ) THEN
+            ALTER TABLE players DROP CONSTRAINT players_user_id_fkey;
+            ALTER TABLE players ADD CONSTRAINT players_user_id_fkey 
+              FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+          END IF;
+          
+          -- Fix match_players.player_id constraint if it's not CASCADE
+          IF EXISTS (
+            SELECT 1 FROM information_schema.referential_constraints 
+            WHERE constraint_name = 'match_players_player_id_fkey' 
+            AND delete_rule = 'NO ACTION'
+          ) THEN
+            ALTER TABLE match_players DROP CONSTRAINT match_players_player_id_fkey;
+            ALTER TABLE match_players ADD CONSTRAINT match_players_player_id_fkey 
+              FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE;
+          END IF;
+        END $$;
+      `;
+      
+      // Now we can use simplified deletion thanks to CASCADE
+      // Update teams where this user is the creator or captain to NULL (these stay NO ACTION by design)
       await sql`UPDATE teams SET created_by = NULL WHERE created_by = ${id}`;
       await sql`UPDATE teams SET captain_id = NULL WHERE captain_id = ${id}`;
       
@@ -490,10 +519,13 @@ export const userDB = {
         WHERE ${id} = ANY(authorized_members)
       `;
       
-      // Update team_invitations where this user was the inviter
+      // Update team_invitations where this user was the inviter (this stays NO ACTION by design)
       await sql`UPDATE team_invitations SET invited_by = NULL WHERE invited_by = ${id}`;
       
-      // Now delete the user (CASCADE will handle other related records)
+      // Delete the user - CASCADE will now handle:
+      // - players records (and their related match_players, player_ratings, team_positions)
+      // - notifications 
+      // - team_invitations.invited_user_id
       const result = await sql`DELETE FROM users WHERE id = ${id} RETURNING *`;
       
       // Commit the transaction
@@ -535,7 +567,7 @@ export const teamDB = {
     
     // Birleştir ve tekrarları kaldır
     const allTeams = [...ownedTeams];
-    playerTeams.forEach(playerTeam => {
+    playerTeams.forEach((playerTeam: { id: number }) => {
       if (!allTeams.some(team => team.id === playerTeam.id)) {
         allTeams.push(playerTeam);
       }

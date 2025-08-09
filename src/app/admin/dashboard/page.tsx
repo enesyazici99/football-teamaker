@@ -13,7 +13,9 @@ import {
   Activity, 
   LogOut,
   BarChart3,
-  Trash2
+  Trash2,
+  Database,
+  RefreshCw
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -28,10 +30,13 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState<'checking' | 'needs_migration' | 'up_to_date' | 'running' | 'completed'>('checking');
+  const [migrationLoading, setMigrationLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     fetchStats();
+    checkMigrationStatus();
   }, []);
 
   const fetchStats = async () => {
@@ -50,6 +55,42 @@ export default function AdminDashboard() {
       console.error('Stats fetch error:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const checkMigrationStatus = async () => {
+    try {
+      const response = await fetch('/api/migrate');
+      const data = await response.json();
+      
+      if (data.needsUpdate) {
+        setMigrationStatus('needs_migration');
+      } else {
+        setMigrationStatus('up_to_date');
+      }
+    } catch {
+      setMigrationStatus('up_to_date'); // Varsayılan olarak güncel kabul et
+    }
+  };
+
+  const runMigration = async () => {
+    setMigrationLoading(true);
+    setMigrationStatus('running');
+    
+    try {
+      // GET isteği ile migration çalıştır
+      window.open('/api/migrate?run=true', '_blank');
+      
+      // 3 saniye bekle ve status'u güncelle
+      setTimeout(() => {
+        setMigrationStatus('completed');
+        setMigrationLoading(false);
+        checkMigrationStatus(); // Tekrar kontrol et
+      }, 3000);
+      
+    } catch {
+      setMigrationStatus('needs_migration');
+      setMigrationLoading(false);
     }
   };
 
@@ -135,6 +176,28 @@ export default function AdminDashboard() {
       color: 'text-purple-600',
       bgColor: 'bg-purple-50 dark:bg-purple-900/10',
       action: () => router.push('/admin/matches')
+    },
+    {
+      title: 'Migration Güncelle',
+      description: migrationStatus === 'needs_migration' ? 'Veritabanı güncellemesi gerekli' : 
+                   migrationStatus === 'running' ? 'Migration çalışıyor...' :
+                   migrationStatus === 'completed' ? 'Migration tamamlandı!' :
+                   'Veritabanı güncel',
+      icon: migrationLoading ? RefreshCw : Database,
+      color: migrationStatus === 'needs_migration' ? 'text-orange-600' :
+             migrationStatus === 'running' ? 'text-blue-600' :
+             migrationStatus === 'completed' ? 'text-green-600' :
+             'text-gray-600',
+      bgColor: migrationStatus === 'needs_migration' ? 'bg-orange-50 dark:bg-orange-900/10' :
+               migrationStatus === 'running' ? 'bg-blue-50 dark:bg-blue-900/10' :
+               migrationStatus === 'completed' ? 'bg-green-50 dark:bg-green-900/10' :
+               'bg-gray-50 dark:bg-gray-900/10',
+      action: () => {
+        if (migrationStatus === 'needs_migration' && !migrationLoading) {
+          runMigration();
+        }
+      },
+      disabled: migrationStatus !== 'needs_migration' || migrationLoading
     }
   ];
 
@@ -206,11 +269,15 @@ export default function AdminDashboard() {
             {adminActions.map((action, index) => (
               <Card
                 key={index}
-                className="bg-slate-800/50 border-slate-700 hover:bg-slate-800/70 transition-colors cursor-pointer group"
-                onClick={action.action}
+                className={`bg-slate-800/50 border-slate-700 transition-colors group ${
+                  action.disabled ? 'opacity-60 cursor-not-allowed' : 'hover:bg-slate-800/70 cursor-pointer'
+                }`}
+                onClick={action.disabled ? undefined : action.action}
               >
                 <CardContent className="p-6 text-center">
-                  <div className={`mx-auto w-12 h-12 ${action.bgColor} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <div className={`mx-auto w-12 h-12 ${action.bgColor} rounded-lg flex items-center justify-center mb-4 ${
+                    action.disabled ? '' : 'group-hover:scale-110'
+                  } transition-transform ${migrationLoading && action.title === 'Migration Güncelle' ? 'animate-spin' : ''}`}>
                     <action.icon className={`h-6 w-6 ${action.color}`} />
                   </div>
                   <h4 className="text-lg font-semibold text-white mb-2">{action.title}</h4>
