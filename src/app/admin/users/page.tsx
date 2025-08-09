@@ -11,7 +11,6 @@ import {
   Users, 
   Search, 
   Trash2,
-  Edit3,
   ArrowLeft,
   Shield,
   UserCheck,
@@ -247,15 +246,7 @@ export default function AdminUsersPage() {
                   )}
 
                   {/* Actions */}
-                  <div className="flex justify-end space-x-2 pt-4 border-t border-slate-700">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-slate-600 text-slate-300 hover:bg-slate-700"
-                    >
-                      <Edit3 className="w-4 h-4 mr-1" />
-                      Düzenle
-                    </Button>
+                  <div className="flex justify-end pt-4 border-t border-slate-700">
                     <Button
                       size="sm"
                       variant="destructive"

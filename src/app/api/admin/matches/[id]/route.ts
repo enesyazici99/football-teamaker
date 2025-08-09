@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/adminAuth';
+import { matchDB } from '@/lib/db';
 
 export async function DELETE(
   request: NextRequest,
@@ -19,11 +20,21 @@ export async function DELETE(
       );
     }
 
-    // In a real application, you would delete from the database
-    // For now, we'll just return success since this is mock data
+    // Check if match exists
+    const match = await matchDB.getById(matchId);
+    if (!match) {
+      return NextResponse.json(
+        { error: 'Maç bulunamadı' },
+        { status: 404 }
+      );
+    }
+
+    // Delete match from database
+    await matchDB.delete(matchId);
+
     return NextResponse.json({ 
       message: 'Maç başarıyla silindi',
-      deletedMatchId: matchId
+      deletedMatch: match
     });
 
   } catch (error) {

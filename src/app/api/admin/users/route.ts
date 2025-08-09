@@ -10,16 +10,14 @@ export async function GET(request: NextRequest) {
     // Get all users
     const users = await userDB.getAll();
 
-    // Add mock data for demonstration
-    const enrichedUsers = users.map(user => ({
+    // Clean up user data, no mock data
+    const cleanUsers = users.map(user => ({
       ...user,
-      is_active: true,
-      last_login: new Date().toISOString(),
       positions: user.positions || [],
       availability_status: user.availability_status || 'available'
     }));
 
-    return NextResponse.json({ users: enrichedUsers });
+    return NextResponse.json({ users: cleanUsers });
 
   } catch (error) {
     console.error('Admin users fetch error:', error);

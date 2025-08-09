@@ -124,7 +124,7 @@ export default function AdminDashboard() {
   const adminActions = [
     {
       title: 'Kullanıcı Yönetimi',
-      description: 'Kullanıcıları görüntüle, düzenle ve yönet',
+      description: 'Kullanıcıları görüntüle ve sil',
       icon: Users,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50 dark:bg-blue-900/10',
@@ -132,7 +132,7 @@ export default function AdminDashboard() {
     },
     {
       title: 'Takım Yönetimi',
-      description: 'Takımları görüntüle, düzenle ve sil',
+      description: 'Takımları görüntüle ve sil',
       icon: UserCog,
       color: 'text-green-600',
       bgColor: 'bg-green-50 dark:bg-green-900/10',
@@ -140,7 +140,7 @@ export default function AdminDashboard() {
     },
     {
       title: 'Maç Yönetimi',
-      description: 'Maçları görüntüle, düzenle ve yönet',
+      description: 'Maçları görüntüle ve sil',
       icon: Calendar,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50 dark:bg-purple-900/10',

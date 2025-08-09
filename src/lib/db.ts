@@ -475,8 +475,36 @@ export const userDB = {
   },
 
   delete: async (id: number) => {
-    const result = await sql`DELETE FROM users WHERE id = ${id} RETURNING *`;
-    return result[0] || null;
+    try {
+      // Start a transaction
+      await sql`BEGIN`;
+      
+      // First, update teams where this user is the creator or captain to NULL
+      await sql`UPDATE teams SET created_by = NULL WHERE created_by = ${id}`;
+      await sql`UPDATE teams SET captain_id = NULL WHERE captain_id = ${id}`;
+      
+      // Remove user from authorized_members arrays
+      await sql`
+        UPDATE teams 
+        SET authorized_members = array_remove(authorized_members, ${id})
+        WHERE ${id} = ANY(authorized_members)
+      `;
+      
+      // Update team_invitations where this user was the inviter
+      await sql`UPDATE team_invitations SET invited_by = NULL WHERE invited_by = ${id}`;
+      
+      // Now delete the user (CASCADE will handle other related records)
+      const result = await sql`DELETE FROM users WHERE id = ${id} RETURNING *`;
+      
+      // Commit the transaction
+      await sql`COMMIT`;
+      
+      return result[0] || null;
+    } catch (error) {
+      // Rollback on error
+      await sql`ROLLBACK`;
+      throw error;
+    }
   }
 };
 

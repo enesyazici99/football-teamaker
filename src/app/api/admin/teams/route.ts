@@ -1,29 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/adminAuth';
-import { teamDB, userDB } from '@/lib/db';
+import { teamDB, userDB, playerDB, matchDB } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
     // Admin authentication required
     requireAdmin(request);
 
-    // Get all teams and users
-    const [teams, users] = await Promise.all([
+    // Get all teams, users, players, and matches
+    const [teams, users, players, matches] = await Promise.all([
       teamDB.getAll(),
-      userDB.getAll()
+      userDB.getAll(),
+      playerDB.getAll(),
+      matchDB.getAll()
     ]);
 
     // Enrich teams with additional data
     const enrichedTeams = teams.map(team => {
       const creator = users.find(u => u.id === team.created_by);
       const captain = team.captain_id ? users.find(u => u.id === team.captain_id) : null;
+      
+      // Count real players for this team
+      const player_count = players.filter(p => p.team_id === team.id && p.is_active).length;
+      
+      // Count real matches for this team
+      const match_count = matches.filter(m => m.team_id === team.id).length;
 
       return {
         ...team,
         created_by_name: creator?.full_name || creator?.username,
         captain_name: captain?.full_name || captain?.username,
-        player_count: Math.floor(Math.random() * team.team_size) + 1, // Mock data
-        match_count: Math.floor(Math.random() * 20) // Mock data
+        player_count,
+        match_count
       };
     });
 
