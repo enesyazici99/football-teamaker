@@ -67,7 +67,7 @@ export default function TeamStatsPage() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [ratings, setRatings] = useState<PlayerRating[]>([]);
-  const [, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'year'>('week');
@@ -212,9 +212,15 @@ export default function TeamStatsPage() {
     );
   }
 
+  // Yetki kontrolü
+  const isTeamOwner = team?.created_by === currentUser?.id;
+  const isCaptain = team?.captain_id === currentUser?.id;
+  const isInAuthorizedMembers = team?.authorized_members?.includes(currentUser?.id || 0) || false;
+  const isAuthorized = isTeamOwner || isCaptain || isInAuthorizedMembers;
+
   return (
     <div className="min-h-screen bg-background">
-      <Navbar teamId={teamId} teamName={team.name} isAuthorized={false} />
+      <Navbar teamId={teamId} teamName={team.name} isAuthorized={isAuthorized} />
       
       <div className="pt-20 pb-8">
         <div className="max-w-7xl mx-auto px-4">
@@ -262,7 +268,7 @@ export default function TeamStatsPage() {
           )}
 
           {/* Navigation */}
-          <TeamNavigation teamId={teamId} isAuthorized={false} />
+          <TeamNavigation teamId={teamId} isAuthorized={isAuthorized} />
 
           {/* Chart 1: Oyuncu Performans Grafiği */}
           <Card className="card-dark mb-6">
