@@ -176,7 +176,7 @@ export default function DashboardPage() {
           duration: 4000
         });
       }
-    } catch (error) {
+    } catch (_error) {
       (window as unknown as { showToast: (toast: { type: string, title: string, message: string, duration: number }) => void }).showToast({
         type: 'error',
         title: 'Hata',
