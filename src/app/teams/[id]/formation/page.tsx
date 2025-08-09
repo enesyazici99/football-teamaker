@@ -435,8 +435,35 @@ export default function TeamFormationPage() {
     setDraggedPlayer(player);
     if (fromPositionId) {
       setDraggedFromPosition(fromPositionId);
+      // Sahadan sürükleniyorsa hover'ı kapat
+      setHoveredPositionId(null);
     }
+    
+    // Özel drag image oluştur
+    const dragImage = document.createElement('div');
+    dragImage.className = 'bg-blue-500 text-white rounded-full w-16 h-16 flex items-center justify-center shadow-lg border-2 border-blue-600';
+    dragImage.style.position = 'absolute';
+    dragImage.style.top = '-100px';
+    dragImage.style.left = '-100px';
+    dragImage.style.opacity = '0.9';
+    dragImage.innerHTML = `
+      <div class="text-center">
+        <div class="text-xs font-bold truncate max-w-12">
+          ${player.full_name.split(' ')[0]}
+        </div>
+      </div>
+    `;
+    document.body.appendChild(dragImage);
+    
+    e.dataTransfer.setDragImage(dragImage, 32, 32);
     e.dataTransfer.effectAllowed = 'move';
+    
+    // Drag image'ı bir süre sonra kaldır
+    setTimeout(() => {
+      if (dragImage.parentNode) {
+        dragImage.remove();
+      }
+    }, 0);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -828,15 +855,12 @@ export default function TeamFormationPage() {
                     Saha Dizilimi
                   </CardTitle>
                   <CardDescription className="text-muted-foreground">
-                    {isMobile ? (
-                      isAuthorized ? 
-                        'Oyuncuları basılı tutup sürükleyerek pozisyon değiştirebilirsiniz' :
-                        'Mevcut dizilimi görüntülüyorsunuz'
-                    ) : (
-                      selectedPlayer 
-                        ? `${selectedPlayer.full_name} için pozisyon seçin`
-                        : 'Oyuncu seçmek için aşağıdaki listeden bir oyuncuya tıklayın'
-                    )}
+                    {selectedPlayer 
+                      ? `${selectedPlayer.full_name} için pozisyon seçin`
+                      : isAuthorized 
+                        ? 'Oyuncu seçin veya sürükleyerek yerleştirin'
+                        : 'Mevcut dizilimi görüntülüyorsunuz'
+                    }
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -878,17 +902,27 @@ export default function TeamFormationPage() {
                       <div
                         key={position.id}
                         data-position-id={position.id}
-                        onClick={() => !isMobile && handlePositionClick(position)}
+                        onClick={() => handlePositionClick(position)}
                         onMouseEnter={() => !isMobile && position.player && setHoveredPositionId(position.id)}
                         onMouseLeave={() => !isMobile && setHoveredPositionId(null)}
                         onDragOver={!isMobile ? handleDragOver : undefined}
                         onDrop={!isMobile ? (e) => handleDrop(e, position.id) : undefined}
                         draggable={!isMobile && position.player && isAuthorized}
-                        onDragStart={!isMobile ? (e) => position.player && handleDragStart(e, position.player, position.id) : undefined}
-                        onDragEnd={!isMobile ? handleDragEnd : undefined}
-                        onTouchStart={isMobile && position.player && isAuthorized ? (e) => handleTouchStart(e, position.player!, position.id) : undefined}
-                        onTouchMove={isMobile && position.player && isAuthorized ? handleTouchMove : undefined}
-                        onTouchEnd={isMobile && position.player && isAuthorized ? handleTouchEnd : undefined}
+                        onDragStart={!isMobile ? (e) => {
+                          if (position.player) {
+                            handleDragStart(e, position.player, position.id);
+                            // Sürükleme başladığında opacity ayarla
+                            (e.currentTarget as HTMLElement).style.opacity = '0.4';
+                          }
+                        } : undefined}
+                        onDragEnd={!isMobile ? (e) => {
+                          handleDragEnd();
+                          // Sürükleme bittiğinde opacity'yi normale döndür
+                          (e.currentTarget as HTMLElement).style.opacity = '';
+                        } : undefined}
+                        onTouchStart={isMobile && position.player && isAuthorized && !selectedPlayer ? (e) => handleTouchStart(e, position.player!, position.id) : undefined}
+                        onTouchMove={isMobile && position.player && isAuthorized && !selectedPlayer ? handleTouchMove : undefined}
+                        onTouchEnd={isMobile && position.player && isAuthorized && !selectedPlayer ? handleTouchEnd : undefined}
                         className={`absolute w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all touch-none ${
                           position.player
                             ? hoveredPositionId === position.id && isAuthorized
@@ -959,13 +993,21 @@ export default function TeamFormationPage() {
                       return (
                         <div
                           key={player.id}
-                          onClick={() => !isMobile && handlePlayerSelect(player)}
+                          onClick={() => handlePlayerSelect(player)}
                           draggable={!isMobile && isAuthorized && !isPlayerOnField}
-                          onDragStart={!isMobile && !isPlayerOnField ? (e) => handleDragStart(e, player) : undefined}
-                          onDragEnd={!isMobile ? handleDragEnd : undefined}
-                          onTouchStart={isMobile && isAuthorized && !isPlayerOnField ? (e) => handleTouchStart(e, player) : undefined}
-                          onTouchMove={isMobile && isAuthorized && !isPlayerOnField ? handleTouchMove : undefined}
-                          onTouchEnd={isMobile && isAuthorized && !isPlayerOnField ? handleTouchEnd : undefined}
+                          onDragStart={!isMobile && !isPlayerOnField ? (e) => {
+                            handleDragStart(e, player);
+                            // Sürükleme başladığında opacity ayarla
+                            (e.currentTarget as HTMLElement).style.opacity = '0.4';
+                          } : undefined}
+                          onDragEnd={!isMobile ? (e) => {
+                            handleDragEnd();
+                            // Sürükleme bittiğinde opacity'yi normale döndür
+                            (e.currentTarget as HTMLElement).style.opacity = '';
+                          } : undefined}
+                          onTouchStart={isMobile && isAuthorized && !isPlayerOnField && !selectedPlayer ? (e) => handleTouchStart(e, player) : undefined}
+                          onTouchMove={isMobile && isAuthorized && !isPlayerOnField && !selectedPlayer ? handleTouchMove : undefined}
+                          onTouchEnd={isMobile && isAuthorized && !isPlayerOnField && !selectedPlayer ? handleTouchEnd : undefined}
                           className={`p-3 rounded-lg transition-colors border-2 touch-none ${
                             selectedPlayer?.id === player.id
                               ? 'bg-blue-100 border-blue-500 dark:bg-blue-900 dark:border-blue-400'
