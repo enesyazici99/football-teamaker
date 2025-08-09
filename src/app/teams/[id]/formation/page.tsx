@@ -321,11 +321,35 @@ export default function TeamFormationPage() {
   // Mobil cihaz kontrolü
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile('ontouchstart' in window || navigator.maxTouchPoints > 0);
+      const isTouchDevice = 'ontouchstart' in window || 
+                           navigator.maxTouchPoints > 0 || 
+                           window.matchMedia('(pointer: coarse)').matches;
+      setIsMobile(isTouchDevice);
     };
+    
+    // İlk kontrol
     checkMobile();
+    
+    // Değişiklikleri dinle
+    const mediaQuery = window.matchMedia('(pointer: coarse)');
+    const handleChange = () => checkMobile();
+    
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleChange);
+    } else {
+      mediaQuery.addListener(handleChange);
+    }
+    
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', handleChange);
+      } else {
+        mediaQuery.removeListener(handleChange);
+      }
+    };
   }, []);
 
   // Formasyon değiştiğinde pozisyonları güncelle
@@ -907,7 +931,18 @@ export default function TeamFormationPage() {
                       <div
                         key={position.id}
                         data-position-id={position.id}
-                        onClick={() => handlePositionClick(position)}
+                        onPointerDown={(e) => {
+                          // Mobilde kullan
+                          if (!isMobile) return;
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handlePositionClick(position);
+                        }}
+                        onClick={(e) => {
+                          // Web'de kullan
+                          if (isMobile) return;
+                          handlePositionClick(position);
+                        }}
                         onMouseEnter={() => !isMobile && position.player && setHoveredPositionId(position.id)}
                         onMouseLeave={() => !isMobile && setHoveredPositionId(null)}
                         onDragOver={!isMobile ? handleDragOver : undefined}
@@ -998,9 +1033,18 @@ export default function TeamFormationPage() {
                       return (
                         <div
                           key={player.id}
-                          onClick={(e) => {
-                            // Mobilde touch eventleri ile çakışmayı önle
+                          onPointerDown={(e) => {
+                            // Hem touch hem mouse için çalışır
                             if (!isAuthorized) return;
+                            if (!isMobile) return; // Web'de sadece onClick kullan
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handlePlayerSelect(player);
+                          }}
+                          onClick={(e) => {
+                            // Web için
+                            if (!isAuthorized) return;
+                            if (isMobile) return; // Mobilde sadece onPointerDown kullan
                             e.preventDefault();
                             e.stopPropagation();
                             handlePlayerSelect(player);
