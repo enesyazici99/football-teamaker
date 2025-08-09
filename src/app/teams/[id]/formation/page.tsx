@@ -553,6 +553,12 @@ export default function TeamFormationPage() {
       setHoveredPositionId(null);
     }
     
+    // Sayfa kaydırmasını engelle
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+    document.body.style.userSelect = 'none';
+    document.body.style.webkitUserSelect = 'none';
+    
     // Sürükleme göstergesi için özel bir yuvarlak element oluştur
     const touch = e.touches[0];
     const element = e.currentTarget as HTMLElement;
@@ -609,6 +615,12 @@ export default function TeamFormationPage() {
     
     // Orijinal elementi normale döndür
     element.style.opacity = '';
+    
+    // Sayfa kaydırmasını geri aç
+    document.body.style.overflow = '';
+    document.body.style.touchAction = '';
+    document.body.style.userSelect = '';
+    document.body.style.webkitUserSelect = '';
     
     // Sürükleme elementini kaldır
     const dragElement = document.getElementById('drag-clone');
@@ -908,7 +920,7 @@ export default function TeamFormationPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="relative bg-green-600 rounded-lg p-4 h-96">
+                  <div className="relative bg-green-600 rounded-lg p-4 h-96 touch-none">
                     {/* Saha çizgileri */}
                     <div className="absolute inset-4 border-2 border-white rounded-lg"></div>
                     
