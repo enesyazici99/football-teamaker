@@ -150,6 +150,22 @@ export async function initializeDatabase() {
 // Eksik sütunları ekleyen fonksiyon
 async function addMissingColumns() {
   try {
+    // Player_ratings tablosuna UNIQUE constraint ekle
+    await sql`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints 
+          WHERE table_name = 'player_ratings' 
+          AND constraint_type = 'UNIQUE'
+        ) THEN
+          ALTER TABLE player_ratings 
+          ADD CONSTRAINT player_ratings_match_rated_rater_unique 
+          UNIQUE(match_id, rated_player_id, rater_player_id);
+        END IF;
+      END $$;
+    `;
+
     // Users tablosuna positions sütunu ekle
     await sql`
       DO $$
@@ -798,27 +814,31 @@ export const playerDB = {
   },
   
   update: async (id: number, updates: { is_active?: boolean; position?: string; skill_level?: number }) => {
-    const setClause = [];
+    // Sadece is_active için özel işlem (oyuncu çıkarma için kullanılıyor)
+    if (updates.is_active !== undefined && Object.keys(updates).length === 1) {
+      const result = await sql`
+        UPDATE players 
+        SET is_active = ${updates.is_active},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ${id}
+        RETURNING *
+      `;
+      return result[0] || null;
+    }
     
-    if (updates.is_active !== undefined) {
-      setClause.push(`is_active = ${updates.is_active}`);
-    }
-    if (updates.position !== undefined) {
-      setClause.push(`position = ${updates.position}`);
-    }
-    if (updates.skill_level !== undefined) {
-      setClause.push(`skill_level = ${updates.skill_level}`);
-    }
+    // Tüm güncellemeler için tek tek kontrol
+    const player = await playerDB.getById(id);
+    if (!player) return null;
     
-    if (setClause.length === 0) {
-      return null;
-    }
+    const newIsActive = updates.is_active !== undefined ? updates.is_active : player.is_active;
+    const newPosition = updates.position !== undefined ? updates.position : player.position;
+    const newSkillLevel = updates.skill_level !== undefined ? updates.skill_level : player.skill_level;
     
     const result = await sql`
       UPDATE players 
-      SET is_active = ${updates.is_active !== undefined ? updates.is_active : sql`is_active`},
-          position = ${updates.position !== undefined ? updates.position : sql`position`},
-          skill_level = ${updates.skill_level !== undefined ? updates.skill_level : sql`skill_level`},
+      SET is_active = ${newIsActive},
+          position = ${newPosition},
+          skill_level = ${newSkillLevel},
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ${id}
       RETURNING *
