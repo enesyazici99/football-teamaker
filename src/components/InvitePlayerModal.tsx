@@ -57,7 +57,7 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
     try {
       const [playersResponse, invitationsResponse, userResponse] = await Promise.all([
         fetch(`/api/teams/${teamId}/players`),
-        fetch('/api/teams/invitations'),
+        fetch(`/api/teams/${teamId}/invitations`),
         fetch('/api/auth/me')
       ]);
 
