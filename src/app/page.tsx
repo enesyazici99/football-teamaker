@@ -1,7 +1,45 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function HomePage() {
+  const router = useRouter();
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    // Kullanıcı giriş yapmış mı kontrol et
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/me', { credentials: 'include' });
+        if (response.ok) {
+          // Kullanıcı giriş yapmışsa dashboard'a yönlendir
+          router.push('/dashboard');
+        } else {
+          setIsChecking(false);
+        }
+      } catch {
+        setIsChecking(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  // Kontrol sırasında loading göster
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
