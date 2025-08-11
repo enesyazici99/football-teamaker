@@ -404,23 +404,27 @@ export default function TeamPlayersPage() {
                           </Badge>
                         </div>
                       )}
-                      {player.positions && player.positions.length > 0 && (
-                        <div>
-                          <Badge variant="outline" className="text-xs mb-2">
-                            Tercih Ettiği Mevkiler:
-                          </Badge>
-                          <div className="flex flex-wrap gap-1">
-                            {player.positions.map((position, index) => (
+                      <div>
+                        <Badge variant="outline" className="text-xs mb-2">
+                          Tercih Ettiği Mevkiler:
+                        </Badge>
+                        <div className="flex flex-wrap gap-1">
+                          {player.positions && player.positions.length > 0 ? (
+                            player.positions.map((position, index) => (
                               <Badge 
                                 key={index} 
                                 className={getPositionBadgeColor(getPositionCategory(position))}
                               >
                                 {position}
                               </Badge>
-                            ))}
-                          </div>
+                            ))
+                          ) : (
+                            <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                              Yok
+                            </Badge>
+                          )}
                         </div>
-                      )}
+                      </div>
                       <div className="flex justify-between items-center">
                         <Badge variant="outline" className="text-xs">
                           Puan:

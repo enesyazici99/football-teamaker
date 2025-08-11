@@ -78,65 +78,17 @@ export default function Navbar({ teamId, teamName }: NavbarProps) {
               )}
             </div>
 
-            {/* Desktop - Navigasyon butonları */}
-            <div className="hidden lg:flex items-center space-x-2">
+            {/* Desktop - Ana Sayfa butonu - merkez */}
+            <div className="hidden lg:flex items-center justify-center flex-1">
               <Button
                 variant={getButtonVariant('/dashboard')}
                 size="sm"
                 onClick={() => router.push('/dashboard')}
                 className="text-xs"
               >
+                <Home className="w-3 h-3 mr-1" />
                 Ana Sayfa
               </Button>
-              
-              {teamId && (
-                <>
-                  <Button
-                    variant={getButtonVariant(`/teams/${teamId}`)}
-                    size="sm"
-                    onClick={() => router.push(`/teams/${teamId}`)}
-                    className="text-xs"
-                  >
-                    Takıma Dön
-                  </Button>
-                  
-                  <Button
-                    variant={getButtonVariant(`/teams/${teamId}/players`)}
-                    size="sm"
-                    onClick={() => router.push(`/teams/${teamId}/players`)}
-                    className="text-xs"
-                  >
-                    Oyuncular
-                  </Button>
-                  
-                  <Button
-                    variant={getButtonVariant(`/teams/${teamId}/matches`)}
-                    size="sm"
-                    onClick={() => router.push(`/teams/${teamId}/matches`)}
-                    className="text-xs"
-                  >
-                    Maçlar
-                  </Button>
-                  
-                  <Button
-                    variant={getButtonVariant(`/teams/${teamId}/formation`)}
-                    size="sm"
-                    onClick={() => router.push(`/teams/${teamId}/formation`)}
-                    className="text-xs"
-                  >
-                    Mevkilendirme
-                  </Button>
-                  
-                  <Button
-                    variant={getButtonVariant(`/teams/${teamId}/stats`)}
-                    size="sm"
-                    onClick={() => router.push(`/teams/${teamId}/stats`)}
-                    className="text-xs"
-                  >
-                    İstatistikler
-                  </Button>
-                </>
-              )}
             </div>
 
             {/* Sağ taraf - Kullanıcı menüsü (Desktop) */}

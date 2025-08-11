@@ -7,6 +7,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import Navbar from '@/components/navbar';
 import TeamNavigation from '@/components/TeamNavigation';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+} from 'chart.js';
+import { Bar, Doughnut } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement
+);
 
 interface Player {
   id: number;
@@ -36,6 +57,7 @@ interface Match {
   team_id: number;
   match_date: string;
   location?: string;
+  opponent_team?: string;
   status: string;
   home_score: number;
   away_score: number;
@@ -94,11 +116,27 @@ export default function TeamStatsPage() {
 
       if (matchesResponse.ok) {
         const matchesData = await matchesResponse.json();
-        setMatches(matchesData.matches || []);
+        const allMatches = matchesData.matches || [];
+        
+        // Maç durumlarını güncelle - eğer maç tarihi geçmişte ve status hala scheduled ise completed yap
+        const now = new Date();
+        const updatedMatches = allMatches.map((match: Match) => {
+          const matchDate = new Date(match.match_date);
+          const matchEndTime = new Date(matchDate.getTime() + (2 * 60 * 60 * 1000)); // 2 saat sonra
+          
+          if (matchEndTime < now && match.status === 'scheduled') {
+            // Maç bitmeli ama hala scheduled durumunda
+            return { ...match, status: 'completed' };
+          }
+          return match;
+        });
+        
+        setMatches(updatedMatches);
       }
 
       if (ratingsResponse.ok) {
         const ratingsData = await ratingsResponse.json();
+        console.log('Fetched ratings:', ratingsData.ratings);
         setRatings(ratingsData.ratings || []);
       }
 
@@ -106,7 +144,8 @@ export default function TeamStatsPage() {
         const userData = await userResponse.json();
         setCurrentUser(userData.user);
       }
-    } catch {
+    } catch (error) {
+      console.error('Data fetch error:', error);
       setError('Veriler yüklenemedi');
     } finally {
       setIsLoading(false);
@@ -288,13 +327,62 @@ export default function TeamStatsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              {players.length > 0 && ratings.length > 0 ? (
+                <Bar
+                  data={{
+                    labels: players.map(p => p.full_name),
+                    datasets: [
+                      {
+                        label: 'Ortalama Puan',
+                        data: players.map(p => getPlayerAverageRating(p.id, selectedPeriod)),
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1,
+                      },
+                      {
+                        label: 'Değerlendirme Sayısı',
+                        data: players.map(p => getPlayerRatingCount(p.id, selectedPeriod)),
+                        backgroundColor: 'rgba(16, 185, 129, 0.5)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1,
+                      }
+                    ]
+                  }}
+                  options={{
+                    responsive: true,
+                    plugins: {
+                      legend: {
+                        position: 'top' as const,
+                      },
+                      title: {
+                        display: false,
+                      },
+                    },
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        max: 10
+                      }
+                    }
+                  }}
+                />
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Henüz puan verisi bulunmuyor</p>
+                  <p className="text-sm text-muted-foreground mt-2">Maçlar tamamlandıktan sonra oyuncular birbirlerini puanlayabilir</p>
+                </div>
+              )}
+              
+              {/* Detaylı Liste */}
+              <div className="mt-6 space-y-3">
                 {players.map((player) => {
                   const avgRating = getPlayerAverageRating(player.id, selectedPeriod);
                   const ratingCount = getPlayerRatingCount(player.id, selectedPeriod);
                   
+                  if (ratingCount === 0) return null;
+                  
                   return (
-                    <div key={player.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                    <div key={player.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
                           {player.full_name.charAt(0)}
@@ -310,18 +398,18 @@ export default function TeamStatsPage() {
                         <div className="text-center">
                           <div className="text-2xl font-bold text-foreground">{avgRating.toFixed(1)}</div>
                           <Badge variant="secondary" className="text-xs">
-                            Ortalama Puan
+                            Ortalama
                           </Badge>
                         </div>
                         <div className="text-center">
                           <div className="text-lg font-semibold text-foreground">{ratingCount}</div>
                           <Badge variant="outline" className="text-xs">
-                            Değerlendirme
+                            Puan
                           </Badge>
                         </div>
-                        <div className="w-32 h-3 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="w-32 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                           <div 
-                            className="h-full bg-gradient-to-r from-blue-500 to-green-500 rounded-full"
+                            className="h-full bg-gradient-to-r from-blue-500 to-green-500 rounded-full transition-all duration-500"
                             style={{ width: `${(avgRating / 10) * 100}%` }}
                           ></div>
                         </div>
@@ -345,28 +433,89 @@ export default function TeamStatsPage() {
                     Maç İstatistikleri
                   </CardTitle>
                   <CardDescription className="text-muted-foreground">
-                    {getPeriodText(selectedPeriod)} maç performansı
+                    Tüm zamanların maç durumu özeti
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-muted/50 rounded-lg">
-                  <div className="text-3xl font-bold text-foreground">{matches.length}</div>
-                  <Badge variant="secondary">Toplam Maç</Badge>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Doughnut
+                    data={{
+                      labels: ['Tamamlanan', 'Planlanan', 'İptal'],
+                      datasets: [{
+                        data: [
+                          matches.filter(m => m.status === 'completed').length,
+                          matches.filter(m => m.status === 'scheduled').length,
+                          matches.filter(m => m.status === 'cancelled').length
+                        ],
+                        backgroundColor: [
+                          'rgba(34, 197, 94, 0.5)',
+                          'rgba(59, 130, 246, 0.5)',
+                          'rgba(239, 68, 68, 0.5)'
+                        ],
+                        borderColor: [
+                          'rgba(34, 197, 94, 1)',
+                          'rgba(59, 130, 246, 1)',
+                          'rgba(239, 68, 68, 1)'
+                        ],
+                        borderWidth: 1
+                      }]
+                    }}
+                    options={{
+                      responsive: true,
+                      plugins: {
+                        legend: {
+                          position: 'bottom' as const,
+                        },
+                      },
+                    }}
+                  />
                 </div>
-                <div className="text-center p-4 bg-muted/50 rounded-lg">
-                  <div className="text-3xl font-bold text-foreground">
-                    {matches.filter(m => m.status === 'completed').length}
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="text-center p-4 bg-muted/50 rounded-lg">
+                    <div className="text-3xl font-bold text-foreground">{matches.length}</div>
+                    <Badge variant="secondary">Toplam Maç</Badge>
                   </div>
-                  <Badge variant="secondary">Tamamlanan</Badge>
+                  <div className="text-center p-4 bg-muted/50 rounded-lg">
+                    <div className="text-3xl font-bold text-green-600">
+                      {matches.filter(m => m.status === 'completed').length}
+                    </div>
+                    <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">Tamamlanan</Badge>
+                  </div>
+                  <div className="text-center p-4 bg-muted/50 rounded-lg">
+                    <div className="text-3xl font-bold text-blue-600">
+                      {matches.filter(m => m.status === 'scheduled').length}
+                    </div>
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">Planlanan</Badge>
+                  </div>
                 </div>
-                <div className="text-center p-4 bg-muted/50 rounded-lg">
-                  <div className="text-3xl font-bold text-foreground">
-                    {matches.filter(m => m.status === 'scheduled').length}
-                  </div>
-                  <Badge variant="secondary">Planlanan</Badge>
+              </div>
+              
+              {/* Son Maçlar */}
+              <div className="mt-6">
+                <h3 className="text-sm font-semibold text-muted-foreground mb-3">Son Tamamlanan Maçlar</h3>
+                <div className="space-y-2">
+                  {matches
+                    .filter(m => m.status === 'completed')
+                    .sort((a, b) => new Date(b.match_date).getTime() - new Date(a.match_date).getTime())
+                    .slice(0, 3)
+                    .map(match => (
+                      <div key={match.id} className="flex items-center justify-between p-2 bg-muted/30 rounded">
+                        <div>
+                          <p className="text-sm font-medium">{match.opponent_team || 'Rakip Belirtilmemiş'}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(match.match_date).toLocaleDateString('tr-TR')}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant="outline">
+                            {match.home_score} - {match.away_score}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
                 </div>
               </div>
             </CardContent>
@@ -400,35 +549,47 @@ export default function TeamStatsPage() {
                   .filter(player => player.ratingCount > 0)
                   .sort((a, b) => b.avgRating - a.avgRating)
                   .slice(0, 5)
-                  .map((player, index) => (
-                    <div key={player.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                          {index + 1}
+                  .map((player, index) => {
+                    const medals = ['🥇', '🥈', '🥉'];
+                    return (
+                      <div key={player.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted/70 transition-colors">
+                        <div className="flex items-center space-x-3">
+                          <div className="text-2xl">
+                            {index < 3 ? medals[index] : (
+                              <div className="w-8 h-8 bg-gray-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                                {index + 1}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-foreground">{player.full_name}</h3>
+                            <Badge variant="outline" className="text-xs">
+                              @{player.username}
+                            </Badge>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-foreground">{player.full_name}</h3>
-                          <Badge variant="outline" className="text-xs">
-                            @{player.username}
-                          </Badge>
+                        <div className="flex items-center space-x-4">
+                          <div className="text-center">
+                            <div className="text-xl font-bold text-foreground">{player.avgRating.toFixed(1)}</div>
+                            <Badge variant="secondary" className="text-xs">
+                              Puan
+                            </Badge>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-sm font-semibold text-foreground">{player.ratingCount}</div>
+                            <Badge variant="outline" className="text-xs">
+                              Oy
+                            </Badge>
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-4">
-                        <div className="text-center">
-                          <div className="text-xl font-bold text-foreground">{player.avgRating.toFixed(1)}</div>
-                          <Badge variant="secondary" className="text-xs">
-                            Puan
-                          </Badge>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-sm font-semibold text-foreground">{player.ratingCount}</div>
-                          <Badge variant="outline" className="text-xs">
-                            Değerlendirme
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
+                {players.filter(p => getPlayerRatingCount(p.id, selectedPeriod) > 0).length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">Henüz puanlanan oyuncu yok</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
