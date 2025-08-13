@@ -332,7 +332,7 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
                         <div>
                           <p className="font-medium text-foreground">{user.full_name}</p>
                           <p className="text-sm text-muted-foreground">@{user.username}</p>
-                          {user.positions.length > 0 && (
+                          {user.positions && user.positions.length > 0 && (
                             <p className="text-xs text-muted-foreground mt-1">
                               {getSortedPositions(user.positions).join(', ')}
                             </p>
@@ -377,7 +377,7 @@ export default function InvitePlayerModal({ isOpen, onClose, teamId, teamName }:
                   <p className="text-foreground"><span className="font-medium">Kullanıcı Adı:</span> @{selectedUser.username}</p>
                   <p className="text-foreground">
                     <span className="font-medium">Mevkiler:</span> 
-                    {selectedUser.positions.length > 0 ? ' ' + getSortedPositions(selectedUser.positions).join(', ') : ' Mevki belirtilmemiş'}
+                    {selectedUser.positions && selectedUser.positions.length > 0 ? ' ' + getSortedPositions(selectedUser.positions).join(', ') : ' Mevki belirtilmemiş'}
                   </p>
                   <p className="text-foreground">
                     <span className="font-medium">Uygunluk:</span>
