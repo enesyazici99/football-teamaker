@@ -41,6 +41,20 @@ interface Match {
   team_name?: string;
 }
 
+interface Player {
+  id: number;
+  user_id: number;
+  team_id: number;
+  full_name: string;
+  username: string;
+}
+
+interface UnratedMatch extends Match {
+  playerRatingsGiven?: number;
+  totalPlayersToRate?: number;
+  currentPlayerId?: number;
+}
+
 
 
 interface TeamInvitation {
@@ -60,6 +74,7 @@ export default function DashboardPage() {
   const [teams, setTeams] = useState<Team[]>([]);
   const [invitations, setInvitations] = useState<TeamInvitation[]>([]);
   const [upcomingMatches, setUpcomingMatches] = useState<Match[]>([]);
+  const [unratedMatches, setUnratedMatches] = useState<UnratedMatch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
@@ -81,10 +96,11 @@ export default function DashboardPage() {
         setUser(userData.user);
         
         // Kullanıcının takımlarını ve davetlerini yükle
+        await fetchTeams();
         await Promise.all([
-          fetchTeams(),
           fetchInvitations(),
-          fetchUpcomingMatches()
+          fetchUpcomingMatches(),
+          fetchUnratedMatches(userData.user.id)
         ]);
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -102,11 +118,14 @@ export default function DashboardPage() {
       const response = await fetch('/api/teams', { credentials: 'include' });
       if (response.ok) {
         const data = await response.json();
-        setTeams(data.teams || []);
+        const userTeams = data.teams || [];
+        setTeams(userTeams);
+        return userTeams;
       }
     } catch {
       console.error('Teams fetch failed');
     }
+    return [];
   };
 
   const fetchInvitations = async () => {
@@ -130,6 +149,66 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('Failed to fetch upcoming matches:', error);
+    }
+  };
+
+  const fetchUnratedMatches = async (userId: number) => {
+    try {
+      // Kullanıcının takımlarındaki tamamlanmış maçları al
+      const completedMatches: UnratedMatch[] = [];
+      const userTeams = teams.length > 0 ? teams : await fetchTeams();
+      
+      for (const team of userTeams) {
+        // Takımın maçlarını al
+        const matchesResponse = await fetch(`/api/teams/${team.id}/matches`, { credentials: 'include' });
+        if (matchesResponse.ok) {
+          const matchesData = await matchesResponse.json();
+          const teamMatches = matchesData.matches || [];
+          
+          // Tamamlanmış maçları filtrele
+          const now = new Date();
+          const completed = teamMatches.filter((match: Match) => {
+            const matchDate = new Date(match.match_date);
+            const matchEndTime = new Date(matchDate.getTime() + (2 * 60 * 60 * 1000)); // 2 saat sonra
+            return matchEndTime < now || match.status === 'completed';
+          });
+          
+          // Her maç için puanlama durumunu kontrol et
+          for (const match of completed) {
+            // Kullanıcının bu takımdaki player ID'sini bul
+            const playersResponse = await fetch(`/api/teams/${team.id}/players`, { credentials: 'include' });
+            if (playersResponse.ok) {
+              const playersData = await playersResponse.json();
+              const currentPlayer = playersData.players?.find((p: Player) => p.user_id === userId);
+              
+              if (currentPlayer) {
+                // Bu maçtaki puanlamaları kontrol et
+                const ratingsResponse = await fetch(`/api/matches/${match.id}/ratings`, { credentials: 'include' });
+                if (ratingsResponse.ok) {
+                  const ratingsData = await ratingsResponse.json();
+                  const myRatings = ratingsData.ratings?.filter((r: any) => r.rater_player_id === currentPlayer.id) || [];
+                  const otherPlayers = playersData.players?.filter((p: Player) => p.id !== currentPlayer.id) || [];
+                  
+                  // Eğer tüm oyuncuları puanlamadıysa, bu maçı listeye ekle
+                  if (myRatings.length < otherPlayers.length) {
+                    completedMatches.push({
+                      ...match,
+                      team_name: team.name,
+                      playerRatingsGiven: myRatings.length,
+                      totalPlayersToRate: otherPlayers.length,
+                      currentPlayerId: currentPlayer.id
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      setUnratedMatches(completedMatches);
+    } catch (error) {
+      console.error('Failed to fetch unrated matches:', error);
     }
   };
 
@@ -361,6 +440,60 @@ export default function DashboardPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Değerlendirme Bekleyen Maçlar */}
+            {unratedMatches.length > 0 && (
+              <Card className="card-dark border-orange-500/50">
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold text-foreground">
+                    ⭐ Değerlendirme Bekleyen Maçlar
+                  </CardTitle>
+                  <CardDescription className="text-muted-foreground">
+                    Maç sonlandı! Takım arkadaşlarınızın performanslarını değerlendirin
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {unratedMatches.map((match) => (
+                      <div key={match.id} className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-300 dark:border-orange-700">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h3 className="font-semibold text-foreground">
+                              {match.team_name} vs {match.opponent_team || 'Rakip Takım'}
+                            </h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {new Date(match.match_date).toLocaleDateString('tr-TR', { 
+                                weekday: 'long', 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              })}
+                            </p>
+                            <Badge variant="outline" className="mt-2 border-orange-500 text-orange-700 dark:text-orange-300">
+                              {match.playerRatingsGiven}/{match.totalPlayersToRate} oyuncu puanlandı
+                            </Badge>
+                          </div>
+                          <div className="text-right">
+                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 mb-2">
+                              Maç Tamamlandı
+                            </Badge>
+                            <div className="text-sm text-muted-foreground">
+                              Skor: {match.home_score} - {match.away_score}
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => router.push(`/teams/${match.team_id}/matches/${match.id}`)}
+                          className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                        >
+                          Oyuncuları Değerlendir →
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Yaklaşan Maçlar */}
             <Card className="card-dark">

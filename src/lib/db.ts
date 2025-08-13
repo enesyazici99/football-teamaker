@@ -1410,6 +1410,25 @@ export const playerRatingDB = {
       JOIN players rated ON pr.rated_player_id = rated.id
       WHERE pr.rater_player_id = ${raterPlayerId} AND pr.match_id = ${matchId}
     `;
+  },
+
+  // Belirli bir oyuncunun tüm puanlamalarını getir
+  getByPlayerId: async (playerId: number) => {
+    return await sql`
+      SELECT 
+        pr.*,
+        rated_u.full_name as rated_player_name,
+        rated_u.username as rated_player_username,
+        rater_u.full_name as rater_player_name,
+        rater_u.username as rater_player_username
+      FROM player_ratings pr
+      JOIN players rated ON pr.rated_player_id = rated.id
+      JOIN users rated_u ON rated.user_id = rated_u.id
+      JOIN players rater ON pr.rater_player_id = rater.id
+      JOIN users rater_u ON rater.user_id = rater_u.id
+      WHERE pr.rated_player_id = ${playerId}
+      ORDER BY pr.created_at DESC
+    `;
   }
 };
 
