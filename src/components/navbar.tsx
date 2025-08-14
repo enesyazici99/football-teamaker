@@ -66,19 +66,21 @@ export default function Navbar({ teamId, teamName }: NavbarProps) {
       <nav className="navbar fixed top-0 left-0 right-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Sol taraf - Logo ve takım adı */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* Sol taraf - Logo */}
+            <div className="flex items-center gap-3">
               <div 
                 className="h-8 w-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                 onClick={() => router.push('/dashboard')}
               >
                 <span className="text-sm font-bold text-white">⚽</span>
               </div>
-              {teamName && (
-                <Badge variant="secondary" className="text-xs sm:text-sm truncate max-w-[120px] sm:max-w-none">
-                  {teamName}
-                </Badge>
-              )}
+              <span 
+                className="text-xl font-semibold cursor-pointer hover:opacity-80 transition-opacity bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent"
+                style={{ fontFamily: 'Poppins, Inter, system-ui, sans-serif', letterSpacing: '0.5px' }}
+                onClick={() => router.push('/dashboard')}
+              >
+                Make It
+              </span>
             </div>
 
             {/* Desktop - merkez boş alan */}
