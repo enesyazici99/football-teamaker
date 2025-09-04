@@ -4,8 +4,5 @@
   "framework": "nextjs",
   "installCommand": "npm install",
   "devCommand": "npm run dev",
-  "regions": ["fra1"],
-  "env": {
-    "DATABASE_URL": "postgresql://neondb_owner:npg_xhYAo9JXZC6U@ep-sweet-meadow-a2e3897t-pooler.eu-central-1.aws.neon.tech/football_teammaker?sslmode=require&channel_binding=require"
-  }
+  "regions": ["fra1"]
 } 
