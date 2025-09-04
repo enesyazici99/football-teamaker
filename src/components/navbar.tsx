@@ -68,7 +68,10 @@ export default function Navbar({ teamId, teamName }: NavbarProps) {
           <div className="flex justify-between items-center h-16">
             {/* Sol taraf - Logo ve takım adı */}
             <div className="flex items-center space-x-2 sm:space-x-4">
-              <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+              <div 
+                className="h-8 w-8 bg-gradient-to-r from-blue-600 to-green-600 rounded-full flex items-center justify-center flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => router.push('/dashboard')}
+              >
                 <span className="text-sm font-bold text-white">⚽</span>
               </div>
               {teamName && (
@@ -78,17 +81,8 @@ export default function Navbar({ teamId, teamName }: NavbarProps) {
               )}
             </div>
 
-            {/* Desktop - Ana Sayfa butonu - merkez */}
+            {/* Desktop - merkez boş alan */}
             <div className="hidden lg:flex items-center justify-center flex-1">
-              <Button
-                variant={getButtonVariant('/dashboard')}
-                size="sm"
-                onClick={() => router.push('/dashboard')}
-                className="text-xs"
-              >
-                <Home className="w-3 h-3 mr-1" />
-                Ana Sayfa
-              </Button>
             </div>
 
             {/* Sağ taraf - Kullanıcı menüsü (Desktop) */}
@@ -142,15 +136,6 @@ export default function Navbar({ teamId, teamName }: NavbarProps) {
       {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-40 bg-background/95 backdrop-blur-sm pt-16">
           <div className="p-4 space-y-2 max-h-[calc(100vh-4rem)] overflow-y-auto">
-            <Button
-              variant={getButtonVariant('/dashboard')}
-              onClick={() => handleNavigation('/dashboard')}
-              className="w-full justify-start"
-            >
-              <Home className="w-4 h-4 mr-2" />
-              Ana Sayfa
-            </Button>
-            
             {teamId && (
               <>
                 <Button
